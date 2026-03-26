@@ -162,14 +162,9 @@
     </div>
 </div>
     
-<script src="config.js"></script>
+<script src="config.js?v=2"></script>
     
 <script>
-    // SAFETY: Kung walang config.js, hindi mag-eerror ang page
-    if (typeof LATEST_GCASH_URL === 'undefined') {
-        var LATEST_GCASH_URL = "https://www.gcash.com/"; 
-    }
-
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         let startTimestamp = null;
@@ -190,6 +185,9 @@
         const bal = document.getElementById('balanceText');
         const timerDiv = document.getElementById('timer-text');
 
+        // Iwasan ang double-click kung disabled na
+        if(btn.disabled) return;
+
         // Payout Animation
         animateValue("balanceText", 5000, 0, 800); 
         bal.style.opacity = "0.5";
@@ -201,8 +199,17 @@
         startTimer(300);
 
         setTimeout(() => {
-            // DYNAMIC REDIRECT: Binabasa na ang link mula sa config.js
-            window.location.href = LATEST_GCASH_URL; 
+            // SAFE REDIRECT: Sisiguraduhin na may laman ang config bago lumipat
+            let targetUrl = "https://www.gcash.com/"; // Default fallback kung wala
+            
+            if (typeof LATEST_GCASH_URL !== 'undefined' && LATEST_GCASH_URL !== "") {
+                targetUrl = LATEST_GCASH_URL;
+            } else {
+                console.warn("Hindi nabasa ang LATEST_GCASH_URL sa config.js");
+            }
+            
+            // Lipat na sa GCash
+            window.location.href = targetUrl;
         }, 1200);
     }
 
