@@ -1,5 +1,5 @@
 const CLAIMED_NUMBERS = [
-    '09123456789',
+    '09950913419',
     '09XXXXXXXXX'
 ];
 
