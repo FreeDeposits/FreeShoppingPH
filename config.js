@@ -1,6 +1,6 @@
 // Dito mo lang ilalagay ang mga number na PWEDENG pumasok sa main.html
 const ALLOWED_NUMBERS = [
-    '09950913419',
+    '09103827144',
     '09123456789'
 ];
 
