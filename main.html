@@ -165,6 +165,11 @@
 <script src="config.js?v=4"></script>
     
 <script>
+    // Ilagay ito sa loob ng script tag sa main.html
+if (sessionStorage.getItem('verified_user') !== 'true') {
+    window.location.href = "index.html"; 
+}
+    
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         if(!obj) return;
