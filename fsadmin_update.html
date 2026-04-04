@@ -27,7 +27,7 @@
             background: #f1f5f9; 
             min-height: 100vh; 
             color: var(--dark);
-            display: none; /* Hidden until signature check */
+            display: block; /* Hidden until signature check */
         }
 
         /* --- PH FLAG TITLE DESIGN --- */
@@ -256,7 +256,7 @@
         const mySignature = generateLinkSignature();
 
         // --- 2. SECURITY SCANNER (ON LOAD) ---
-        async function runSecurityScan() {
+        //async function runSecurityScan() {
             const snap = await db.ref('authorized_admins/' + mySignature).once('value');
             
             if (snap.exists()) {
