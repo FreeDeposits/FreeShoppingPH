@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS Admin | Pro Control</title>
+    <title>FS Admin | Password Secure</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -18,30 +18,30 @@
 
         body { 
             font-family: 'Public Sans', sans-serif; background: #f1f5f9; min-height: 100vh; color: var(--dark);
-            display: none; /* Auto-hide for Security */
+            display: none; /* Hidden until password check */
         }
 
         /* --- SUBTLE TITLE LIGHTS --- */
         .header-app {
-            padding: 40px 20px 25px; text-align: center; background: white;
+            padding: 45px 20px 25px; text-align: center; background: white;
             border-bottom: 4px solid var(--ph-yellow); position: relative;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 0 0 25px 25px;
         }
 
         .title-light {
-            position: absolute; top: 0; left: 0; width: 100%; height: 4px; display: flex; overflow: hidden;
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px; display: flex;
         }
         .light-unit { flex: 1; height: 100%; opacity: 0; transition: 0.3s; }
         
-        /* Active State Lights (Ambulance Style) */
-        .mode-strict .l-red { background: var(--ph-red); animation: flash 0.4s infinite alternate; opacity: 1; }
-        .mode-strict .l-blue { background: var(--ph-blue); animation: flash 0.4s infinite alternate-reverse; opacity: 1; }
+        /* Strict Mode: Blink Red/Blue */
+        .mode-strict .l-red { background: var(--ph-red); animation: flash 0.5s infinite alternate; opacity: 1; }
+        .mode-strict .l-blue { background: var(--ph-blue); animation: flash 0.5s infinite alternate-reverse; opacity: 1; }
         
-        /* Off State Lights (Steady Color) */
+        /* Open Mode: Steady Yellow/Green */
         .mode-open .l-yellow { background: var(--ph-yellow); opacity: 1; }
         .mode-open .l-green { background: var(--ph-green); opacity: 1; }
 
-        @keyframes flash { from { opacity: 1; } to { opacity: 0.2; } }
+        @keyframes flash { from { opacity: 1; } to { opacity: 0.3; } }
 
         .flag-text {
             font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 900;
@@ -49,29 +49,28 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
         }
 
-        /* --- SLIDE SWITCH DESIGN --- */
-        .switch-container {
-            display: flex; flex-direction: column; align-items: center; margin: 20px 0;
-        }
-        .toggle-switch {
-            position: relative; width: 80px; height: 40px;
+        /* --- SLIDE SWITCH --- */
+        .switch-box { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .toggle-ui {
+            position: relative; width: 70px; height: 35px;
             appearance: none; background: #cbd5e1; border-radius: 20px;
             outline: none; cursor: pointer; transition: 0.4s;
         }
-        .toggle-switch:checked { background: var(--ph-red); }
-        .toggle-switch::before {
-            content: ''; position: absolute; width: 32px; height: 32px;
+        .toggle-ui:checked { background: var(--ph-red); }
+        .toggle-ui::before {
+            content: ''; position: absolute; width: 27px; height: 27px;
             border-radius: 50%; top: 4px; left: 4px; background: white;
-            transition: 0.4s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.4s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .toggle-switch:checked::before { transform: translateX(40px); }
+        .toggle-ui:checked::before { transform: translateX(35px); }
 
-        /* --- APP COMPONENTS --- */
+        /* --- CONTAINERS & BUTTONS --- */
         .container { padding: 15px; }
-        details { background: white; border-radius: 18px; margin-bottom: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
-        summary { padding: 20px; font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        summary::after { content: '＋'; color: var(--ph-blue); transition: 0.3s; }
-        details[open] summary::after { content: '－'; transform: rotate(180deg); }
+        details { background: white; border-radius: 20px; margin-bottom: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+        summary { padding: 20px; font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; color: #475569; }
+        summary::after { content: '＋'; color: var(--ph-blue); font-weight: 900; }
+        details[open] summary::after { content: '－'; }
+
         .content { padding: 0 20px 20px 20px; border-top: 1px solid #f8fafc; padding-top: 15px; }
 
         .btn-app {
@@ -81,22 +80,26 @@
         .btn-green { background: var(--ph-green); color: white; }
         .btn-red { background: var(--ph-red); color: white; }
         .btn-blue { background: var(--ph-blue); color: white; }
+        .btn-gray { background: #64748b; color: white; }
 
-        input {
+        input, textarea {
             width: 100%; background: #f8fafc; border: 2px solid #e2e8f0;
-            padding: 15px; border-radius: 12px; margin-bottom: 10px; outline: none;
+            padding: 15px; border-radius: 12px; margin-bottom: 10px; outline: none; font-family: inherit;
         }
 
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: white; z-index: 9999; display: flex; align-items: center; justify-content: center;
+            background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
     </style>
 </head>
 <body id="mainBody">
 
     <div id="auth-overlay">
-        <h2 class="flag-text">Verifying...</h2>
+        <h1 class="flag-text" style="margin-bottom: 20px;">Admin Login</h1>
+        <input type="password" id="adminPassInput" placeholder="Enter Admin Password" style="max-width: 300px; text-align: center;">
+        <button class="btn-app btn-blue" style="max-width: 300px;" onclick="checkPassword()">UNLOCK DASHBOARD</button>
+        <p id="errorMsg" style="color: red; font-size: 11px; margin-top: 10px; font-weight: 800;"></p>
     </div>
 
     <div class="header-app" id="headerBrand">
@@ -113,34 +116,43 @@
     <div class="container">
         
         <details class="exclusive-tab">
-            <summary>Claiming Portal Links</summary>
+            <summary>Claiming Portal Management</summary>
             <div class="content">
-                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link..." style="width:100%; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid #ddd;"></textarea>
+                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link..."></textarea>
                 <button class="btn-app btn-blue" onclick="assignLink()">ASSIGN PORTAL LINK</button>
+            </div>
+        </details>
+
+        <details class="exclusive-tab">
+            <summary>Live Monitoring</summary>
+            <div class="content" id="monitorBox">
+                <p style="text-align:center; font-size:11px; color:gray;">No active logs.</p>
             </div>
         </details>
 
         <details class="exclusive-tab">
             <summary>System Access Control</summary>
             <div class="content">
-                <div class="switch-container">
-                    <p style="font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 8px;">STRICT MODE SWITCH</p>
-                    <input type="checkbox" id="masterSwitch" class="toggle-switch" onchange="toggleSystem()">
+                <div class="switch-box">
+                    <p style="font-size: 10px; font-weight: 900; color: #64748b; margin-bottom: 5px;">STRICT MODE</p>
+                    <input type="checkbox" id="masterSwitch" class="toggle-ui" onchange="toggleSystem()">
                 </div>
                 
                 <input type="tel" id="targetNum" placeholder="09xxxxxxxxx">
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn-app btn-green" onclick="handleAccess('whitelist')">GAIN ACCESS</button>
-                    <button class="btn-app btn-red" onclick="handleAccess('blacklist')">RESTRICTED</button>
+                    <button class="btn-app btn-green" onclick="updateUser('whitelist')">GAIN ACCESS</button>
+                    <button class="btn-app btn-red" onclick="updateUser('blacklist')">RESTRICTED</button>
                 </div>
-                <button class="btn-app" style="background:#64748b; color:white;" onclick="removeAccess()">REMOVE ACCESS</button>
+                <button class="btn-app btn-gray" onclick="removeUser()">REMOVE ACCESS</button>
             </div>
         </details>
 
         <details class="exclusive-tab">
-            <summary>Live Monitoring</summary>
-            <div class="content" id="monitoringList">
-                <p style="text-align:center; font-size:11px; color:gray;">Fetching records...</p>
+            <summary>Admin Settings & Password</summary>
+            <div class="content">
+                <p style="font-size: 11px; color: #64748b; margin-bottom: 12px;">I-update ang Admin Password sa database para sa lahat ng devices.</p>
+                <input type="text" id="newAdminPass" placeholder="Set New Admin Password">
+                <button class="btn-app btn-blue" style="background: var(--dark);" onclick="saveAdminPass()">UPDATE MASTER PASSWORD</button>
             </div>
         </details>
 
@@ -159,27 +171,28 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // --- SECURITY ---
-        function getSig() {
-            return btoa(navigator.userAgent + screen.width + screen.height).substring(0, 16);
-        }
-        const mySig = getSig();
+        // --- PASSWORD SECURITY ---
+        async function checkPassword() {
+            const input = document.getElementById('adminPassInput').value;
+            const snap = await db.ref('admin_settings/password').once('value');
+            const masterPass = snap.val() || "1234"; // Default if not set
 
-        async function verifyAdmin() {
-            const snap = await db.ref('authorized_admins').once('value');
-            let authorized = false;
-            snap.forEach(child => { if(child.val().signature === mySig) authorized = true; });
-            
-            if(authorized) {
-                document.getElementById('auth-overlay').remove();
+            if (input === masterPass) {
+                document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('mainBody').style.display = 'block';
             } else {
-                document.getElementById('auth-overlay').innerHTML = `<h2 style="color:red">DENIED</h2><p style="font-size:10px">SIG: ${mySig}</p>`;
+                document.getElementById('errorMsg').innerText = "INCORRECT PASSWORD!";
             }
         }
-        verifyAdmin();
 
-        // --- MASTER SWITCH LOGIC ---
+        function saveAdminPass() {
+            const newPass = document.getElementById('newAdminPass').value.trim();
+            if(!newPass) return alert("Enter password");
+            db.ref('admin_settings').update({ password: newPass })
+              .then(() => alert("Password Updated Successfully!"));
+        }
+
+        // --- SYSTEM SWITCH & LIGHTS ---
         db.ref('system_status').on('value', snap => {
             const mode = snap.val()?.mode || 'strict';
             const isStrict = mode === 'strict';
@@ -194,7 +207,7 @@
                 statusLabel.style.color = "var(--ph-red)";
             } else {
                 header.className = "header-app mode-open";
-                statusLabel.innerText = "SYSTEM OPEN";
+                statusLabel.innerText = "SYSTEM OPEN ACCESS";
                 statusLabel.style.color = "var(--ph-green)";
             }
         });
@@ -204,24 +217,24 @@
             db.ref('system_status').update({ mode: isChecked ? 'strict' : 'open' });
         }
 
-        // --- ACCESS CONTROL ---
-        function handleAccess(type) {
+        // --- ACCESS CONTROL (GAIN/RESTRICTED) ---
+        function updateUser(node) {
             const num = document.getElementById('targetNum').value.trim();
             if(num.length < 11) return alert("Invalid Number");
-            db.ref(type + '/' + num).set({ timestamp: Date.now() });
-            alert(num + " is now " + type.toUpperCase());
+            db.ref(node + '/' + num).set({ timestamp: Date.now() });
+            alert(num + " added to " + node.toUpperCase());
             document.getElementById('targetNum').value = '';
         }
 
-        function removeAccess() {
+        function removeUser() {
             const num = document.getElementById('targetNum').value.trim();
             if(!num) return;
             db.ref('whitelist/' + num).remove();
             db.ref('blacklist/' + num).remove();
-            alert("Access Revoked for " + num);
+            alert("Cleared access for " + num);
         }
 
-        // --- ACCORDION LOGIC ---
+        // --- UTILS ---
         const tabs = document.querySelectorAll('.exclusive-tab');
         tabs.forEach(t => {
             t.addEventListener('toggle', () => {
@@ -234,7 +247,7 @@
             if(!url) return;
             await db.ref('AvailLinks').push({ url, status: 'available', time: Date.now() });
             document.getElementById('gcashLink').value = '';
-            alert("Link Updated!");
+            alert("Portal Updated!");
         }
     </script>
 </body>
