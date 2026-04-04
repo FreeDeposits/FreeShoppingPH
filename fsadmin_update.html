@@ -3,89 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS ADMIN | DISCO MODE</title>
+    <title>FS ADMIN | SIREN MODE</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@900&display=swap" rel="stylesheet">
     
     <style>
         :root { 
             --blue: #0038a8; --red: #ce1126; --yellow: #fcd116; --green: #00b159; 
-            --reflect-color: rgba(0,0,0,0);
+            --glow: rgba(0,0,0,0);
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; }
         
         body { 
             background: #cbd5e0; 
-            transition: box-shadow 0.5s ease;
+            transition: background 0.4s ease;
             min-height: 100vh;
-            box-shadow: inset 0 -100px 150px -50px var(--reflect-color);
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* --- HEADER --- */
-        .header { background: white; padding: 30px 10px 15px; text-align: center; border-bottom: 4px solid #eee; position: relative; z-index: 10; }
-        .lights { position: absolute; top: 0; left: 0; width: 100%; height: 8px; display: flex; }
-        .l-unit { flex: 1; opacity: 0; transition: 0.3s; }
-
-        .mode-on .l-y1, .mode-on .l-y2 { background: var(--yellow); opacity: 1; animation: disco 0.3s infinite alternate; }
-        .mode-on .l-g1, .mode-on .l-g2 { background: var(--green); opacity: 1; animation: disco 0.3s infinite alternate-reverse; }
-        .mode-on { --reflect-color: rgba(252, 209, 22, 0.3); border-bottom-color: var(--green); }
-
-        .mode-off .l-r1, .mode-off .l-r2 { background: var(--red); opacity: 1; animation: blink 0.4s infinite alternate; }
-        .mode-off .l-b1, .mode-off .l-b2 { background: var(--blue); opacity: 1; animation: blink 0.4s infinite alternate-reverse; }
-        .mode-off { --reflect-color: rgba(206, 17, 38, 0.3); border-bottom-color: var(--blue); }
-
-        @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
-        @keyframes disco { from { filter: brightness(1.2); transform: scaleY(1.2); } to { filter: brightness(0.8); transform: scaleY(1); } }
-
-        /* --- UI COMPONENTS --- */
-        #auth-overlay { position: fixed; inset: 0; background: #f0f2f5; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .container { padding: 12px; display: none; }
-        
-        /* Accordion Logic */
-        details { background: white; border-radius: 12px; margin-bottom: 10px; border: 1px solid #a0aec0; overflow: hidden; }
-        summary { padding: 18px; font-weight: 900; font-size: 14px; cursor: pointer; background: #edf2f7; list-style: none; }
-        summary::-webkit-details-marker { display: none; }
-
-        /* --- LIVE MONITORING LOGS --- */
-        .log-box { background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .log-center { text-align: center; flex: 1; }
-        
-        /* Active Status Animation */
-        .status-active { color: var(--green); font-weight: 900; animation: pulseGreen 1.5s infinite ease-in-out; }
-        .status-init { color: var(--blue); font-weight: 900; }
-        
-        @keyframes pulseGreen {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
+        /* --- POLICE SIREN HEADER --- */
+        .header { 
+            background: #1a202c; padding: 40px 10px 25px; text-align: center; 
+            border-bottom: 5px solid white; position: relative; z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        
+        /* Siren Light Units */
+        .lights { position: absolute; top: 0; left: 0; width: 100%; height: 15px; display: flex; }
+        .l-unit { flex: 1; height: 100%; opacity: 0.1; transition: 0.2s; }
 
-        .beneficiary-click { 
-            display: block; margin-top: 5px; color: #4a5568; font-weight: 900; 
-            text-decoration: underline; cursor: pointer; font-size: 14px; 
-        }
+        /* UP MODE: YELLOW-GREEN (OPEN ACCESS) */
+        .mode-on .l-y1, .mode-on .l-y2 { background: var(--yellow); opacity: 1; animation: flash 0.2s infinite alternate; box-shadow: 0 0 20px var(--yellow); }
+        .mode-on .l-g1, .mode-on .l-g2 { background: var(--green); opacity: 1; animation: flash 0.2s infinite alternate-reverse; box-shadow: 0 0 20px var(--green); }
+        .mode-on-bg { background: radial-gradient(circle at top, rgba(0, 177, 89, 0.4) 0%, #cbd5e0 70%) !important; }
 
-        /* --- LEVER TOGGLE --- */
+        /* DOWN MODE: RED-BLUE (RESTRICTED ACCESS) */
+        .mode-off .l-r1, .mode-off .l-r2 { background: var(--red); opacity: 1; animation: flash 0.15s infinite alternate; box-shadow: 0 0 20px var(--red); }
+        .mode-off .l-b1, .mode-off .l-b2 { background: var(--blue); opacity: 1; animation: flash 0.15s infinite alternate-reverse; box-shadow: 0 0 20px var(--blue); }
+        .mode-off-bg { background: radial-gradient(circle at top, rgba(206, 17, 38, 0.4) 0%, #cbd5e0 70%) !important; }
+
+        @keyframes flash { from { filter: brightness(2); opacity: 1; } to { filter: brightness(0.5); opacity: 0.7; } }
+
+        .title-main { color: white; font-size: 28px; letter-spacing: -1px; text-transform: uppercase; font-weight: 900; text-shadow: 2px 2px 0px rgba(0,0,0,0.5); }
+        .title-status { display: block; margin-top: 8px; font-size: 12px; letter-spacing: 2px; font-weight: 900; padding: 4px 10px; border-radius: 50px; width: fit-content; margin-inline: auto; }
+        .status-up { background: var(--green); color: white; }
+        .status-down { background: var(--red); color: white; animation: pulseRed 1s infinite; }
+
+        @keyframes pulseRed { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* --- UI --- */
+        #auth-overlay { position: fixed; inset: 0; background: #1a202c; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .container { padding: 15px; display: none; position: relative; z-index: 5; }
+        details { background: white; border-radius: 15px; margin-bottom: 12px; border: 2px solid #a0aec0; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        summary { padding: 20px; font-weight: 900; font-size: 13px; cursor: pointer; background: #edf2f7; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- MONITORING --- */
+        .log-box { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .status-active { color: var(--green); font-weight: 900; animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        .beneficiary-click { display: block; margin-top: 5px; color: #2d3748; font-weight: 900; text-decoration: underline; cursor: pointer; }
+
+        /* --- LEVER --- */
         .control-panel { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; }
-        .lever-box { position: relative; width: 45px; height: 80px; background: #1a202c; border-radius: 8px; border: 4px solid #4a5568; }
+        .lever-box { position: relative; width: 50px; height: 90px; background: #000; border-radius: 10px; border: 4px solid #4a5568; }
         .lever-input { opacity: 0; width: 100%; height: 100%; position: absolute; z-index: 5; cursor: pointer; }
-        .lever-handle { position: absolute; left: 50%; transform: translateX(-50%); width: 16px; height: 40px; border-radius: 20px; transition: 0.2s; }
-        .lever-input:not(:checked) + .lever-handle { bottom: 8px; background: #718096; }
-        .lever-input:checked + .lever-handle { top: 8px; background: var(--green); box-shadow: 0 0 15px var(--green); }
+        .lever-handle { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 45px; border-radius: 10px; transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .lever-input:not(:checked) + .lever-handle { bottom: 5px; background: #718096; box-shadow: 0 5px 0 #2d3748; }
+        .lever-input:checked + .lever-handle { top: 5px; background: var(--green); box-shadow: 0 -5px 0 #1c4532, 0 0 20px var(--green); }
 
-        .phone-field { flex: 1; padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 18px; font-weight: 900; text-align: center; outline: none; }
-        .btn-app { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 900; color: white; cursor: pointer; margin-top: 8px; }
+        .phone-field { flex: 1; padding: 15px; border: 3px solid #cbd5e1; border-radius: 12px; font-size: 20px; font-weight: 900; text-align: center; outline: none; }
+        .btn-app { width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: 900; color: white; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
     </style>
 </head>
 <body id="main-body">
 
     <div id="auth-overlay">
-        <h2 style="margin-bottom:15px;">ADMIN LOGIN</h2>
-        <input type="password" id="admin_pw" placeholder="Enter PIN" style="padding:12px; text-align:center; border-radius:10px; border:2px solid #cbd5e1; margin-bottom:15px; width: 200px;">
-        <button class="btn-app" style="background:#0038a8; width:200px" onclick="attemptLogin()">UNLOCK</button>
+        <h1 style="letter-spacing:5px; margin-bottom:20px;">FS ADMIN</h1>
+        <input type="password" id="admin_pw" placeholder="PIN CODE" style="padding:15px; text-align:center; border-radius:12px; border:none; margin-bottom:20px; width: 220px; font-size: 20px;">
+        <button class="btn-app" style="background:var(--blue); width:220px" onclick="attemptLogin()">SYSTEM UNLOCK</button>
     </div>
 
     <div class="header" id="header_ui">
@@ -95,27 +94,27 @@
             <div class="l-unit l-r2 l-y2"></div>
             <div class="l-unit l-b2 l-g2"></div>
         </div>
-        <h1 style="font-size: 22px;">FREESHOPPING PH</h1>
-        <p id="status_text" style="font-size:10px; margin-top:5px; font-weight:900"></p>
+        <h1 class="title-main">FreeShoppingPH</h1>
+        <span id="status_label" class="title-status">LOADING SYSTEM...</span>
     </div>
 
     <div class="container" id="admin_ui">
         <details id="sec1">
-            <summary onclick="manageAccordion('sec1')">1. PORTAL MANAGEMENT (INPUT LINKS)</summary>
-            <div style="padding:12px">
-                <input type="text" id="portal_url" placeholder="Paste GCash URL..." style="width:100%; padding:15px; border-radius:10px; border:2px solid #ddd; margin-bottom:10px;">
-                <button class="btn-app" style="background:#0038a8" onclick="addPortal()">ADD TO DATABASE</button>
+            <summary onclick="manageAccordion('sec1')">1. PORTAL MANAGEMENT <span>▼</span></summary>
+            <div style="padding:15px">
+                <input type="text" id="portal_url" placeholder="Paste GCash Merchant URL..." style="width:100%; padding:18px; border-radius:12px; border:2px solid #ddd; margin-bottom:12px; font-weight:900;">
+                <button class="btn-app" style="background:var(--blue)" onclick="addPortal()">DEPLOY TO DATABASE</button>
             </div>
         </details>
 
         <details id="sec2" open>
-            <summary onclick="manageAccordion('sec2')">2. LIVE MONITORING & LOGS</summary>
+            <summary onclick="manageAccordion('sec2')">2. LIVE MONITORING <span>▼</span></summary>
             <div id="logs_container" style="padding:10px"></div>
         </details>
 
         <details id="sec3">
-            <summary onclick="manageAccordion('sec3')">3. SYSTEM ACCESS CONTROL</summary>
-            <div style="padding:12px">
+            <summary onclick="manageAccordion('sec3')">3. SYSTEM ACCESS CONTROL <span>▼</span></summary>
+            <div style="padding:15px">
                 <div class="control-panel">
                     <div class="lever-box">
                         <input type="checkbox" id="strict_toggle" class="lever-input" onchange="updateMode()">
@@ -123,8 +122,8 @@
                     </div>
                     <input type="tel" id="phone_num" maxlength="11" placeholder="09XXXXXXXXX" class="phone-field" oninput="autoScan(this.value)">
                 </div>
-                <div id="dynamic_btn" style="margin-top:10px;"></div>
-                <button class="btn-app" style="background:#2d3748" onclick="saveToDb('blacklist')">RESTRICTED (BLACKLIST)</button>
+                <div id="dynamic_btn"></div>
+                <button class="btn-app" style="background:#2d3748" onclick="saveToDb('blacklist')">ADD TO BLACKLIST</button>
             </div>
         </details>
     </div>
@@ -142,12 +141,34 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- ACCORDION LOGIC ---
+        // --- SOUND ENGINE ---
+        let audioCtx, oscillator, gainNode;
+        function initSiren() {
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.type = 'square';
+                gainNode.gain.value = 0; // Start silent
+                oscillator.start();
+            }
+        }
+
+        function playSiren(mode) {
+            if(!audioCtx) return;
+            if(mode === 'strict') { // Restricted (Red/Blue)
+                oscillator.frequency.setTargetAtTime(440, audioCtx.currentTime, 0.1);
+                setTimeout(() => oscillator.frequency.setTargetAtTime(660, audioCtx.currentTime, 0.1), 200);
+                gainNode.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.1);
+            } else { // Open (Yellow/Green)
+                gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1); // Mute for open
+            }
+        }
+
         function manageAccordion(openId) {
-            const sections = ['sec1', 'sec2', 'sec3'];
-            sections.forEach(id => {
-                if(id !== openId) document.getElementById(id).removeAttribute('open');
-            });
+            ['sec1', 'sec2', 'sec3'].forEach(id => { if(id !== openId) document.getElementById(id).removeAttribute('open'); });
         }
 
         window.onload = () => { if(localStorage.getItem("admin_auth") === "granted") unlockApp(); };
@@ -155,8 +176,11 @@
         async function attemptLogin() {
             const p = document.getElementById('admin_pw').value;
             const s = await db.ref('admin_settings/password').once('value');
-            if(p === (s.val() || "1234")) { localStorage.setItem("admin_auth", "granted"); unlockApp(); }
-            else alert("Mali!");
+            if(p === (s.val() || "1234")) { 
+                localStorage.setItem("admin_auth", "granted"); 
+                initSiren();
+                unlockApp(); 
+            } else alert("INVALID ACCESS!");
         }
 
         function unlockApp() { 
@@ -164,47 +188,30 @@
             document.getElementById('admin_ui').style.display='block'; 
         }
 
-        function romanize(n) { 
-            const m={V:5,IV:4,I:1}; let r=''; 
-            for(let i in m){while(n>=m[i]){r+=i;n-=m[i]}} return r; 
-        }
+        function romanize(n) { const m={V:5,IV:4,I:1}; let r=''; for(let i in m){while(n>=m[i]){r+=i;n-=m[i]}} return r; }
 
-        // --- MONITORING LOGIC ---
         db.ref('AvailLinks').on('value', snap => {
-            const container = document.getElementById('logs_container'); 
-            container.innerHTML = ''; let i=1;
+            const container = document.getElementById('logs_container'); container.innerHTML = ''; let i=1;
             snap.forEach(c => {
-                const d = c.val(); 
-                const active = d.status === 'available';
-                const phone = d.beneficiary || 'None';
-                
+                const d = c.val(); const active = d.status === 'available'; const phone = d.beneficiary || 'None';
                 container.innerHTML += `
                 <div class="log-box">
-                    <div style="font-size:10px; width:60px"><b>GCLink#${romanize(i)}</b></div>
-                    
-                    <div class="log-center">
-                        <span class="${active?'status-active':'status-init'}">[${active?'ACTIVE':'INITIATED'}]</span>
-                        ${phone !== 'None' && phone !== 'NONE' ? `<span class="beneficiary-click" onclick="copyToForm('${phone}')">${phone}</span>` : `<span style="display:block; font-size:12px; color:gray; margin-top:5px;">Waiting...</span>`}
+                    <div style="font-size:11px; width:70px"><b>GCLink#${romanize(i)}</b></div>
+                    <div style="text-align:center; flex:1">
+                        <span class="${active?'status-active':'status-init'}" style="color:${active?'var(--green)':'var(--blue)'}">[${active?'ACTIVE':'INITIATED'}]</span>
+                        ${phone !== 'None' && phone !== 'NONE' ? `<span class="beneficiary-click" onclick="copyToForm('${phone}')">${phone}</span>` : `<span style="display:block; font-size:12px; color:gray; margin-top:5px;">Scanning...</span>`}
                     </div>
-
-                    <div style="text-align:right; width:60px">
-                        <span style="color:orange; font-size:10px; cursor:pointer; display:block; margin-bottom:5px" onclick="reuse('${c.key}')">REUSE</span>
-                        <span style="color:red; font-size:10px; cursor:pointer" onclick="removeLink('${c.key}')">REMOVE</span>
+                    <div style="text-align:right; width:70px">
+                        <span style="color:orange; font-size:10px; font-weight:900; cursor:pointer; display:block; margin-bottom:5px" onclick="reuse('${c.key}')">REUSE</span>
+                        <span style="color:red; font-size:10px; font-weight:900; cursor:pointer" onclick="removeLink('${c.key}')">REMOVE</span>
                     </div>
-                </div>`; 
-                i++;
+                </div>`; i++;
             });
         });
 
         function copyToForm(num) {
-            // Jump to System Access Section
-            manageAccordion('sec3');
-            document.getElementById('sec3').setAttribute('open', 'true');
-            // Fill up and scan
-            const field = document.getElementById('phone_num');
-            field.value = num;
-            autoScan(num);
-            // Scroll down
+            manageAccordion('sec3'); document.getElementById('sec3').setAttribute('open', 'true');
+            const field = document.getElementById('phone_num'); field.value = num; autoScan(num);
             field.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -212,8 +219,8 @@
             if(v.length === 11) {
                 const btn = document.getElementById('dynamic_btn');
                 const snap = await db.ref('whitelist/'+v).once('value');
-                if(snap.exists()) btn.innerHTML = `<button class="btn-app" style="background:#ce1126" onclick="deleteAccess('${v}')">REMOVE ACCESS</button>`;
-                else btn.innerHTML = `<button class="btn-app" style="background:#00b159" onclick="saveToDb('whitelist')">GAIN ACCESS</button>`;
+                if(snap.exists()) btn.innerHTML = `<button class="btn-app" style="background:var(--red)" onclick="deleteAccess('${v}')">REVOKE ACCESS</button>`;
+                else btn.innerHTML = `<button class="btn-app" style="background:var(--green)" onclick="saveToDb('whitelist')">GRANT ACCESS</button>`;
             }
         }
 
@@ -227,15 +234,20 @@
             document.getElementById('strict_toggle').checked = isStrict;
             const header = document.getElementById('header_ui');
             const body = document.getElementById('main-body');
+            const label = document.getElementById('status_label');
             
-            if(isStrict) {
-                header.className = "header mode-on";
-                document.getElementById('status_text').innerText = "STRICT MODE: YELLOW/GREEN";
-                body.style.setProperty('--reflect-color', 'rgba(0, 177, 89, 0.2)');
-            } else {
+            if(isStrict) { // DOWN = RESTRICTED (Police Siren Mode)
                 header.className = "header mode-off";
-                document.getElementById('status_text').innerText = "OPEN MODE: RED/BLUE";
-                body.style.setProperty('--reflect-color', 'rgba(206, 17, 38, 0.2)');
+                body.className = "mode-off-bg";
+                label.innerText = "OFF: RESTRICTED ACCESS";
+                label.className = "title-status status-down";
+                if(audioCtx) playSiren('strict');
+            } else { // UP = OPEN ACCESS (Disco Mode)
+                header.className = "header mode-on";
+                body.className = "mode-on-bg";
+                label.innerText = "UP: OPEN ACCESS";
+                label.className = "title-status status-up";
+                if(audioCtx) playSiren('open');
             }
         });
 
