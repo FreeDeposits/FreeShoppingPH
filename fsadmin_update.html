@@ -197,4 +197,68 @@
 
         // --- 2. MASTER SWITCH & LIGHTS ---
         db.ref('system_status').on('value', snap => {
-            const mode = snap.val()?.
+            const mode = snap.val()?.mode || 'strict';
+            const isStrict = mode === 'strict';
+            document.getElementById('masterSwitch').checked = isStrict;
+            
+            const header = document.getElementById('headerBrand');
+            const statusLabel = document.getElementById('modeStatus');
+            
+            if(isStrict) {
+                header.className = "header-app mode-strict";
+                statusLabel.innerText = "STRICT MODE ACTIVE";
+                statusLabel.style.color = "var(--ph-red)";
+            } else {
+                header.className = "header-app mode-open";
+                statusLabel.innerText = "OPEN ACCESS MODE";
+                statusLabel.style.color = "var(--ph-green)";
+            }
+        });
+
+        function updateSystemMode() {
+            const isChecked = document.getElementById('masterSwitch').checked;
+            db.ref('system_status').update({ mode: isChecked ? 'strict' : 'open' });
+        }
+
+        // --- 3. ACCESS CONTROL (WHITELIST/BLACKLIST) ---
+        function handleDbAccess(node) {
+            const num = document.getElementById('targetPhone').value.trim();
+            if(num.length < 11) return alert("Invalid Phone Number");
+            db.ref(node + '/' + num).set({ dateAdded: Date.now() });
+            alert(num + " added to " + node);
+            document.getElementById('targetPhone').value = '';
+        }
+
+        function clearUserAccess() {
+            const num = document.getElementById('targetPhone').value.trim();
+            if(!num) return;
+            db.ref('whitelist/' + num).remove();
+            db.ref('blacklist/' + num).remove();
+            alert("Revoked access for " + num);
+        }
+
+        // --- 4. PORTAL & PASSWORD UPDATE ---
+        function assignLink() {
+            const url = document.getElementById('gcashLink').value.trim();
+            if(!url) return;
+            db.ref('AvailLinks').push({ url, status: 'available', time: Date.now() });
+            document.getElementById('gcashLink').value = '';
+            alert("Portal Link Updated!");
+        }
+
+        function changeMasterPass() {
+            const val = document.getElementById('newPass').value.trim();
+            if(!val) return;
+            db.ref('admin_settings').update({ password: val }).then(() => alert("Master Password Updated!"));
+        }
+
+        // --- UTILS ---
+        const tabs = document.querySelectorAll('.exclusive-tab');
+        tabs.forEach(t => {
+            t.addEventListener('toggle', () => {
+                if(t.open) tabs.forEach(other => { if(other !== t) other.removeAttribute('open'); });
+            });
+        });
+    </script>
+</body>
+</html>
