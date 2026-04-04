@@ -2,104 +2,313 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C.I.A. | Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FS Admin | Command Center</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="js/config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --neon: #00f2ff; --ghost: #39ff14; --danger: #ff3131; --bg: #020408; --warning: #ffff00; }
-        * { box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
-        body { background: var(--bg); color: var(--neon); padding: 15px; background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px); background-size: 20px 20px; }
-        header { border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 25px; text-shadow: 0 0 10px var(--neon); }
-        .op-card { background: rgba(0, 15, 25, 0.8); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .card-label { font-size: 11px; font-weight: 800; margin-bottom: 15px; color: var(--ghost); }
-        textarea, input { width: 100%; background: #000; border: 1px solid var(--neon); color: var(--ghost); padding: 12px; border-radius: 4px; font-size: 12px; margin-bottom: 10px; outline: none; }
-        .btn-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 12px; font-weight: 800; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
-        .monitor-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        .monitor-table th { text-align: left; padding: 10px; border-bottom: 1px solid var(--neon); }
-        .monitor-table td { padding: 10px; border-bottom: 1px solid rgba(0, 242, 255, 0.1); }
-        .status-tag { padding: 2px 6px; border-radius: 3px; font-weight: 800; font-size: 9px; }
-        .st-avail { border: 1px solid var(--ghost); color: var(--ghost); }
-        .st-claim { border: 1px solid var(--danger); color: var(--danger); }
-        .btn-mini { background: none; border: none; cursor: pointer; padding: 2px 5px; }
+        :root { 
+            --nature-green: #2d6a4f; 
+            --emerald: #40916c; 
+            --light-green: #d8f3dc;
+            --white-glass: rgba(255, 255, 255, 0.95);
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: 'Public Sans', sans-serif; 
+            background: linear-gradient(135deg, #e9f5f0 0%, #d8f3dc 100%); 
+            min-height: 100vh; 
+            padding: 20px 15px;
+            color: #1e293b;
+            padding-top: 40px; /* Space for ambulance lights */
+        }
+
+        /* --- AMBULANCE LIGHTS --- */
+        .ambulance-light { position: fixed; top: 0; width: 50%; height: 8px; z-index: 9999; }
+        #light-left { left: 0; border-bottom-right-radius: 50px; }
+        #light-right { right: 0; border-bottom-left-radius: 50px; }
+
+        /* OPEN STATE (RED/BLUE) */
+        @keyframes flashRed { 0%, 100% { background: #ef4444; box-shadow: 0 0 25px #ef4444; } 50% { opacity: 0.1; } }
+        @keyframes flashBlue { 0%, 100% { background: #3b82f6; box-shadow: 0 0 25px #3b82f6; } 50% { opacity: 0.1; } }
+        body.status-open #light-left { animation: flashRed 0.4s infinite alternate; }
+        body.status-open #light-right { animation: flashBlue 0.4s infinite alternate-reverse; }
+
+        /* STRICT STATE (AMBER/YELLOW) */
+        @keyframes flashAmber { 0%, 100% { background: #f59e0b; box-shadow: 0 0 25px #f59e0b; } 50% { opacity: 0.1; } }
+        @keyframes flashYellow { 0%, 100% { background: #eab308; box-shadow: 0 0 25px #eab308; } 50% { opacity: 0.1; } }
+        body.status-strict #light-left { animation: flashAmber 0.4s infinite alternate; }
+        body.status-strict #light-right { animation: flashYellow 0.4s infinite alternate-reverse; }
+
+        /* --- HEADER --- */
+        .header-title { text-align: center; margin-bottom: 25px; }
+        .header-title h1 { font-family: 'Quicksand', sans-serif; color: var(--nature-green); font-size: 24px; font-weight: 800; }
+        .header-title p { font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 1px; }
+
+        /* --- ACCORDIONS --- */
+        details {
+            background: var(--white-glass);
+            border-radius: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        summary {
+            padding: 20px;
+            font-weight: 800;
+            color: var(--nature-green);
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '▼'; font-size: 12px; transition: 0.3s; color: var(--emerald); }
+        details[open] summary::after { transform: rotate(180deg); }
+        
+        .content { padding: 0 20px 20px 20px; border-top: 1px solid #f1f5f9; margin-top: 5px; padding-top: 15px; }
+
+        /* --- FORMS & BUTTONS --- */
+        textarea, input[type="tel"] {
+            width: 100%;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 13px;
+            color: #334155;
+            outline: none;
+            margin-bottom: 12px;
+            transition: 0.3s;
+        }
+        textarea:focus, input[type="tel"]:focus { border-color: var(--emerald); background: #fff; }
+
+        .btn-main {
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%);
+            color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(45, 106, 79, 0.2); letter-spacing: 1px;
+        }
+        .btn-main:active { transform: scale(0.97); }
+
+        /* --- TABLE LOGIC --- */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+        th { padding: 10px 5px; color: #64748b; font-weight: 800; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px 5px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155; }
+        .tag-avail { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 20px; font-size: 9px; }
+        .tag-used { background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 20px; font-size: 9px; }
+        .btn-small { padding: 5px 10px; border: none; border-radius: 6px; font-weight: 800; font-size: 9px; cursor: pointer; color: white; margin-right: 2px; }
+        .bg-yellow { background: var(--warning); }
+        .bg-red { background: var(--danger); }
+
+        /* --- UTILIZE PROCESS (VERTICAL SWITCH) --- */
+        .security-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: center; }
+        .side-panel { text-align: center; }
+        .side-panel h4 { font-size: 10px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        .btn-sec-green { background: #10b981; color: white; width: 100%; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 800; border: none; cursor: pointer;}
+        .btn-sec-red { background: #ef4444; color: white; width: 100%; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 800; border: none; cursor: pointer;}
+
+        /* VERTICAL SWITCH CSS */
+        .switch-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; padding: 15px 10px; border-radius: 20px; border: 1px solid #e2e8f0;}
+        .switch-label { font-size: 9px; font-weight: 800; margin-bottom: 8px; color: var(--nature-green); text-transform: uppercase;}
+        .vertical-switch { position: relative; display: inline-block; width: 36px; height: 76px; }
+        .vertical-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #f59e0b; transition: .4s; border-radius: 40px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        .slider:before { position: absolute; content: ""; height: 28px; width: 28px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        input:checked + .slider { background-color: #3b82f6; } /* Blue when UP/OPEN */
+        input:checked + .slider:before { transform: translateY(-40px); }
     </style>
 </head>
-<body>
-    <header>
-        <h1>[NEXUS_ADMIN_TERMINAL]</h1>
-        <div style="font-size: 10px; color: var(--ghost);">SYSTEM STATUS: SECURE</div>
-    </header>
+<body class="status-strict"> <div class="ambulance-light" id="light-left"></div>
+    <div class="ambulance-light" id="light-right"></div>
 
-    <div class="op-card">
-        <div class="card-label">● DEPLOY_REDIRECT_LINKS</div>
-        <textarea id="links" rows="3" placeholder="PASTE GCASH LINKS HERE (ONE PER LINE)"></textarea>
-        <button class="btn-action" onclick="deploy()">DEPLOY TO DATABASE</button>
+    <div class="header-title">
+        <h1>NEXUS ADMIN</h1>
+        <p>SYSTEM STATUS: <span id="statusText">STRICT MODE</span></p>
     </div>
 
-    <div class="op-card">
-        <div class="card-label">● LIVE_MONITORING</div>
-        <table class="monitor-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>STATUS</th>
-                    <th>USER</th>
-                    <th>ACTION</th>
-                </tr>
-            </thead>
-            <tbody id="linkData"></tbody>
-        </table>
-    </div>
+    <details>
+        <summary>FreeShoppingPH | Claiming Portal Links</summary>
+        <div class="content">
+            <textarea id="gcashLink" rows="2" placeholder="Paste Mahabang GCash Link Dito..."></textarea>
+            <button class="btn-main" onclick="assignLink()">ASSIGN</button>
+        </div>
+    </details>
+
+    <details>
+        <summary>Live Monitoring (Max 5)</summary>
+        <div class="content table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>GCLink#</th>
+                        <th>Beneficiary</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="linksTable">
+                    </tbody>
+            </table>
+        </div>
+    </details>
+
+    <details>
+        <summary>Utilize Process (Security)</summary>
+        <div class="content security-grid">
+            
+            <div class="side-panel">
+                <h4>Whitelist</h4>
+                <input type="tel" id="whiteNum" placeholder="09xxxxxxxxx">
+                <button class="btn-sec-green" onclick="addWhitelist()">GAIN ACCESS</button>
+            </div>
+
+            <div class="switch-wrapper">
+                <span class="switch-label" id="switchIndicator">STRICT</span>
+                <label class="vertical-switch">
+                    <input type="checkbox" id="masterSwitch" onchange="toggleSystem()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="side-panel">
+                <h4>Blacklist</h4>
+                <input type="tel" id="blackNum" placeholder="09xxxxxxxxx">
+                <button class="btn-sec-red" onclick="addBlacklist()">CLAIMED</button>
+            </div>
+
+        </div>
+    </details>
 
     <script>
-        firebase.initializeApp(firebaseConfig);
+        // FIREBASE CONFIG - (Gamit ang provided config mo)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
+            authDomain: "freeshoppingph-3bade.firebaseapp.com",
+            databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
+            projectId: "freeshoppingph-3bade",
+            storageBucket: "freeshoppingph-3bade.appspot.com",
+            messagingSenderId: "1028308831969",
+            appId: "1:1028308831969:web:96e224e75d69ba74332924"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        function deploy() {
-            const val = document.getElementById('links').value.trim();
-            if(!val) return alert("Walang link!");
-            
-            const urlArray = val.split('\n');
-            urlArray.forEach(url => {
-                if(url.trim()) {
-                    db.ref('links').push({
-                        url: url.trim(),
-                        status: 'available',
-                        user: 'NONE',
-                        timestamp: Date.now()
-                    });
-                }
+        // 1. ASSIGN LINK LOGIC (MAX 5)
+        async function assignLink() {
+            const url = document.getElementById('gcashLink').value.trim();
+            if (!url) return alert("Paki-lagay ang link.");
+
+            // Check how many links currently exist
+            const snapshot = await db.ref('AvailLinks').once('value');
+            if (snapshot.numChildren() >= 5) {
+                return alert("Puno na! MAX 5 Links lang ang pwede. Mag-delete muna sa Live Monitoring.");
+            }
+
+            db.ref('AvailLinks').push({
+                url: url,
+                status: 'available',
+                beneficiary: 'NONE',
+                timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('gcashLink').value = '';
+                alert("Link Assigned Successfully!");
             });
-            document.getElementById('links').value = '';
         }
 
-        function reuse(key) {
-            db.ref('links/' + key).update({ status: 'available', user: 'NONE' });
-        }
-
-        function remove(key) {
-            if(confirm("DELETE?")) db.ref('links/' + key).remove();
-        }
-
-        // Listener para sa listahan
-        db.ref('links').on('value', snap => {
-            const tbody = document.getElementById('linkData');
+        // 2. LIVE MONITORING LOGIC
+        db.ref('AvailLinks').on('value', snap => {
+            const tbody = document.getElementById('linksTable');
             tbody.innerHTML = '';
-            snap.forEach(c => {
-                const d = c.val();
-                const sClass = d.status === 'available' ? 'st-avail' : 'st-claim';
-                tbody.innerHTML += `<tr>
-                    <td>#${c.key.substr(-5)}</td>
-                    <td><span class="status-tag ${sClass}">${d.status.toUpperCase()}</span></td>
-                    <td style="color:#fff">${d.user}</td>
-                    <td>
-                        <button class="btn-mini" onclick="reuse('${c.key}')" style="color:var(--warning)">[REUSE]</button>
-                        <button class="btn-mini" onclick="remove('${c.key}')" style="color:var(--danger)">[X]</button>
-                    </td>
-                </tr>`;
+            let count = 1;
+
+            snap.forEach(child => {
+                const data = child.val();
+                const key = child.key;
+                const statusTag = data.status === 'available' ? '<span class="tag-avail">AVAIL</span>' : '<span class="tag-used">USED</span>';
+                const beneficiaryText = data.beneficiary === 'NONE' ? '-------' : data.beneficiary;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>Lnk_${count}</td>
+                        <td style="font-family: monospace;">${beneficiaryText}</td>
+                        <td>${statusTag}</td>
+                        <td>
+                            <button class="btn-small bg-yellow" onclick="reuseLink('${key}')">REUSE</button>
+                            <button class="btn-small bg-red" onclick="deleteLink('${key}')">DEL</button>
+                        </td>
+                    </tr>
+                `;
+                count++;
             });
+        });
+
+        function reuseLink(key) { db.ref('AvailLinks/' + key).update({ status: 'available', beneficiary: 'NONE' }); }
+        function deleteLink(key) { if(confirm("Delete this link?")) db.ref('AvailLinks/' + key).remove(); }
+
+        // 3. WHITELIST & BLACKLIST LOGIC
+        function addWhitelist() {
+            const num = document.getElementById('whiteNum').value.trim();
+            if(num.length === 11) {
+                db.ref('whitelist/' + num).set({ addedAt: Date.now() });
+                document.getElementById('whiteNum').value = '';
+                alert(num + " is now Whitelisted.");
+            } else { alert("Dapat 11 digits."); }
+        }
+
+        function addBlacklist() {
+            const num = document.getElementById('blackNum').value.trim();
+            if(num.length === 11) {
+                db.ref('blacklist/' + num).set({ addedAt: Date.now() });
+                document.getElementById('blackNum').value = '';
+                alert(num + " is marked as Already Claimed.");
+            } else { alert("Dapat 11 digits."); }
+        }
+
+        // 4. MASTER SWITCH & AMBULANCE LIGHTS LOGIC
+        const body = document.body;
+        const switchInput = document.getElementById('masterSwitch');
+        const statusText = document.getElementById('statusText');
+        const switchIndicator = document.getElementById('switchIndicator');
+
+        // Function to change local UI and push to Firebase
+        function toggleSystem() {
+            const isOpen = switchInput.checked; // true if UP, false if DOWN
+            db.ref('system_status').update({ mode: isOpen ? 'open' : 'strict' });
+        }
+
+        // Realtime Listener for System Status
+        db.ref('system_status').on('value', snap => {
+            const data = snap.val();
+            const isModeOpen = data && data.mode === 'open';
+            
+            // Sync UI toggle with database
+            switchInput.checked = isModeOpen;
+
+            if (isModeOpen) {
+                body.className = 'status-open';
+                statusText.innerText = 'OPEN (ALL ACCESS)';
+                statusText.style.color = '#3b82f6';
+                switchIndicator.innerText = 'OPEN';
+            } else {
+                body.className = 'status-strict';
+                statusText.innerText = 'STRICT (WHITELIST ONLY)';
+                statusText.style.color = '#f59e0b';
+                switchIndicator.innerText = 'STRICT';
+            }
         });
     </script>
 </body>
