@@ -3,35 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS ADMIN</title>
+    <title>NEXUS | Command Center</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #0b0f13; color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #161b22; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #30363d; }
-        .slot { background: #0d1117; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #30363d; }
-        .slot.in-use { border-left-color: #f85149; background: #1c1111; }
-        .slot.avail { border-left-color: #2ea043; }
-        button { cursor: pointer; padding: 8px 12px; border-radius: 5px; border: none; font-weight: bold; }
-        .btn-rec { background: #d29922; color: black; }
-        .btn-del { background: #f85149; color: white; margin-left: 5px; }
-        textarea { width: 100%; padding: 10px; background: #0d1117; color: #58a6ff; border: 1px solid #30363d; border-radius: 5px; }
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --primary: #58a6ff;
+            --success: #238636;
+            --danger: #f85149;
+            --warning: #d29922;
+            --text: #c9d1d9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Inter', sans-serif; 
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        h1 { font-family: 'JetBrains Mono', monospace; font-size: 22px; margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; color: #8b949e; }
+
+        .panel-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        /* Form Inputs */
+        textarea, input {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #58a6ff;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin-bottom: 10px;
+            transition: 0.2s;
+        }
+        textarea:focus, input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(88,166,255,0.1); }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+            font-size: 12px;
+        }
+        .btn-primary { background: var(--success); color: white; }
+        .btn-primary:hover { background: #2ea043; }
+        .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+
+        /* Links List Design */
+        .link-item {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .link-item.status-avail { border-left: 4px solid var(--success); }
+        .link-item.status-used { border-left: 4px solid var(--danger); }
+
+        .link-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 800; }
+        .badge-avail { background: rgba(35,134,54,0.1); color: #3fb950; }
+        .badge-used { background: rgba(248,81,73,0.1); color: #f85149; }
+
+        .link-url { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8b949e; word-break: break-all; margin-bottom: 10px; display: block; }
+        .link-user { font-size: 12px; font-weight: 600; color: var(--primary); }
+
+        .link-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .action-btn { flex: 1; padding: 6px; font-size: 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: 700; }
+        .btn-reuse { background: var(--warning); color: black; }
+        .btn-del { background: #30363d; color: var(--danger); }
+
+        /* Ban List */
+        .ban-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <div style="max-width: 600px; margin: 0 auto;">
-        <h2>NEXUS DISPATCHER</h2>
+    <h1 id="nexus-title">NEXUS COMMAND PANEL</h1>
 
-        <div class="card">
-            <textarea id="linkInput" placeholder="Paste GCash Link..."></textarea>
-            <button onclick="addLink()" style="background:#238636; color:white; width:100%; margin-top:10px;">DEPLOY NEW LINK</button>
+    <div class="container">
+        <div class="side-panel">
+            <div class="panel-card" style="margin-bottom: 20px;">
+                <h2>Deploy New Link</h2>
+                <textarea id="urlInput" rows="3" placeholder="Paste GCash/Merchant Link here..."></textarea>
+                <button class="btn btn-primary" onclick="deploy()">🚀 Deploy to Main</button>
+            </div>
+
+            <div class="panel-card">
+                <h2>Block Number (Ban)</h2>
+                <input type="text" id="banInput" placeholder="Enter Phone Number">
+                <button class="btn btn-danger" onclick="banUser()">⛔ Terminate Access</button>
+                <div id="banContainer" style="margin-top: 15px; max-height: 200px; overflow-y: auto;">
+                    </div>
+            </div>
         </div>
 
-        <h3>LIVE MONITORING</h3>
-        <div id="linkList"></div> </div>
+        <div class="main-panel">
+            <div class="panel-card">
+                <h2>Live Database Monitor</h2>
+                <div id="linksContainer">
+                    <p style="text-align:center; color: #555;">Loading database...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <script>
+    // Config mo
     const firebaseConfig = {
         apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
         authDomain: "freeshoppingph-3bade.firebaseapp.com",
@@ -44,49 +150,94 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function addLink() {
-        const url = document.getElementById('linkInput').value;
-        if(!url) return;
-        db.ref('links').push({ url: url, status: 'available', claimedBy: 'NONE' });
-        document.getElementById('linkInput').value = '';
+    // 1. DEPLOY FUNCTION
+    function deploy() {
+        const url = document.getElementById('urlInput').value.trim();
+        if(!url) return alert("Empty link!");
+        
+        db.ref('links').push({
+            url: url,
+            status: 'available',
+            claimedBy: 'NONE',
+            timestamp: Date.now()
+        }).then(() => {
+            document.getElementById('urlInput').value = '';
+        });
     }
 
-    // ITO ANG KULANG: REALTIME LISTENER
+    // 2. BAN FUNCTION
+    function banUser() {
+        const phone = document.getElementById('banInput').value.trim();
+        if(!phone) return;
+        db.ref('banned_ghosts/' + phone).set({ bannedAt: Date.now() });
+        document.getElementById('banInput').value = '';
+    }
+
+    // 3. REUSE / RECYCLE
+    function reuseLink(id) {
+        db.ref('links/' + id).update({
+            status: 'available',
+            claimedBy: 'NONE'
+        });
+    }
+
+    // 4. DELETE
+    function deleteLink(id) {
+        if(confirm("Permanently delete this link?")) {
+            db.ref('links/' + id).remove();
+        }
+    }
+
+    // --- REALTIME LISTENERS ---
+
+    // Monitor Links
     db.ref('links').on('value', snap => {
-        const container = document.getElementById('linkList');
-        container.innerHTML = ''; // Clear muna
+        const cont = document.getElementById('linksContainer');
+        cont.innerHTML = '';
         
         if(!snap.exists()) {
-            container.innerHTML = '<p style="color:#555">No links deployed yet.</p>';
+            cont.innerHTML = '<p style="text-align:center; color: #555; padding: 20px;">Database Empty. Deploy a link.</p>';
             return;
         }
 
         snap.forEach(child => {
             const data = child.val();
-            const isUsed = data.status === 'in-use';
+            const isAvail = data.status === 'available';
             
-            const div = document.createElement('div');
-            div.className = `slot ${isUsed ? 'in-use' : 'avail'}`;
-            div.innerHTML = `
-                <div style="font-size:12px; margin-bottom:10px;">
-                    <strong>STATUS:</strong> ${isUsed ? '🔴 IN-USE' : '🟢 READY'}<br>
-                    <strong>CLAIMED BY:</strong> ${data.claimedBy}<br>
-                    <strong>URL:</strong> <span style="color:#58a6ff">${data.url.substring(0,40)}...</span>
+            cont.innerHTML += `
+                <div class="link-item ${isAvail ? 'status-avail' : 'status-used'}">
+                    <div class="link-header">
+                        <span class="badge ${isAvail ? 'badge-avail' : 'badge-used'}">
+                            ${isAvail ? '● READY' : '● IN USE'}
+                        </span>
+                        <span style="font-size: 10px; color: #555;">ID: ${child.key.substr(-5)}</span>
+                    </div>
+                    <code class="link-url">${data.url}</code>
+                    <div class="link-user">👤 User: ${data.claimedBy}</div>
+                    
+                    <div class="link-actions">
+                        <button class="action-btn btn-reuse" onclick="reuseLink('${child.key}')">REUSE</button>
+                        <button class="action-btn btn-del" onclick="deleteLink('${child.key}')">DELETE</button>
+                    </div>
                 </div>
-                <button class="btn-rec" onclick="recycle('${child.key}')">♻️ REUSE / RECYCLE</button>
-                <button class="btn-del" onclick="remove('${child.key}')">DELETE</button>
             `;
-            container.appendChild(div);
         });
     });
 
-    function recycle(key) {
-        db.ref('links/' + key).update({ status: 'available', claimedBy: 'NONE' });
-    }
-
-    function remove(key) {
-        if(confirm("Delete permanently?")) db.ref('links/' + key).remove();
-    }
+    // Monitor Ban List
+    db.ref('banned_ghosts').on('value', snap => {
+        const cont = document.getElementById('banContainer');
+        cont.innerHTML = '';
+        snap.forEach(child => {
+            cont.innerHTML += `
+                <div class="ban-row">
+                    <span>${child.key}</span>
+                    <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="db.ref('banned_ghosts/${child.key}').remove()">LIFT BAN</button>
+                </div>
+            `;
+        });
+    });
 </script>
+
 </body>
 </html>
