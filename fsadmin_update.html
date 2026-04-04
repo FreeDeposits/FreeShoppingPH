@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS ADMIN | COMPACT REMASTER</title>
+    <title>FS ADMIN | REMASTERED</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -16,9 +16,9 @@
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; }
         
-        body { background: #cbd5e0; min-height: 100vh; transition: 0.5s; }
+        body { background: #cbd5e0; min-height: 100vh; transition: 0.5s; overflow-x: hidden; }
 
-        /* --- COMPACT HEADER --- */
+        /* --- HEADER --- */
         .header { 
             background: #111; padding: 35px 10px 15px; text-align: center; 
             border-bottom: 3px solid #fff; position: relative; z-index: 10;
@@ -26,7 +26,7 @@
         .lights { position: absolute; top: 0; left: 0; width: 100%; height: 8px; display: flex; }
         .l-unit { flex: 1; height: 100%; opacity: 0.1; }
 
-        /* MODE LOGIC */
+        /* POLICE LIGHTS LOGIC */
         .mode-on .l-y1, .mode-on .l-y2 { background: var(--yellow); opacity: 1; animation: flash 0.2s infinite alternate; }
         .mode-on .l-g1, .mode-on .l-g2 { background: var(--green); opacity: 1; animation: flash 0.2s infinite alternate-reverse; }
         .mode-on-bg { background: radial-gradient(circle at top, rgba(0, 177, 89, 0.25) 0%, #cbd5e0 60%) !important; }
@@ -46,51 +46,50 @@
         .container { padding: 10px; display: none; }
         
         details { background: white; border-radius: 10px; margin-bottom: 8px; border: 1px solid #a0aec0; overflow: hidden; }
-        summary { padding: 12px 15px; font-weight: 900; font-size: 12px; cursor: pointer; background: #f1f5f9; list-style: none; display: flex; justify-content: space-between; }
+        summary { padding: 12px 15px; font-weight: 900; font-size: 12px; cursor: pointer; background: #f1f5f9; list-style: none; display: flex; justify-content: space-between; align-items: center; }
         summary::after { content: '▼'; font-size: 10px; opacity: 0.5; }
 
-        /* --- MONITORING (FIXED SPACING) --- */
+        /* --- MONITORING (FIXED FLEXBOX) --- */
         .log-box { 
             background: #fff; padding: 8px 12px; border-radius: 8px; 
             margin-bottom: 5px; border: 1px solid #e2e8f0;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .log-info { flex: 1; display: flex; flex-direction: column; align-items: center; }
-        .log-actions { display: flex; flex-direction: column; gap: 4px; width: 55px; text-align: right; }
+        .log-info { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .log-actions { display: flex; flex-direction: column; gap: 4px; width: 60px; text-align: right; }
         
         .btn-small { font-size: 9px; font-weight: 900; cursor: pointer; text-transform: uppercase; border: none; background: none; }
 
-        /* --- COMPACT LEVER --- */
+        /* --- COMPACT TOGGLE LEVER --- */
         .control-panel { display: flex; align-items: center; gap: 12px; background: #fff; padding: 10px; border-radius: 10px; }
         .lever-box { 
             position: relative; width: 45px; height: 75px; background: #000; 
-            border-radius: 8px; border: 3px solid #334155;
+            border-radius: 8px; border: 3px solid #334155; cursor: pointer;
         }
-        /* Clickable Layer */
-        .lever-label { position: absolute; inset: 0; cursor: pointer; z-index: 10; }
-        .lever-input { display: none; }
+        .lever-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 10; }
         .lever-handle { 
             position: absolute; left: 50%; transform: translateX(-50%); 
-            width: 18px; height: 35px; border-radius: 5px; transition: 0.2s ease-in-out;
+            width: 18px; height: 35px; border-radius: 5px; transition: 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
+        /* Unchecked = Down = Restricted */
         .lever-input:not(:checked) + .lever-handle { bottom: 5px; background: #64748b; }
+        /* Checked = Up = Open */
         .lever-input:checked + .lever-handle { top: 5px; background: var(--green); box-shadow: 0 0 10px var(--green); }
 
         .phone-field { flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 18px; font-weight: 900; text-align: center; }
         
-        /* PRIMARY BUTTONS REMASTERED */
         .btn-app { 
             width: 100%; padding: 12px; border: none; border-radius: 10px; 
-            font-weight: 900; color: white; cursor: pointer; font-size: 13px;
+            font-weight: 900; color: white; cursor: pointer; font-size: 13px; text-transform: uppercase;
         }
     </style>
 </head>
 <body id="main-body">
 
     <div id="auth-overlay" style="position:fixed; inset:0; background:#111; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
-        <h2 style="margin-bottom:15px;">ADMIN</h2>
-        <input type="password" id="admin_pw" placeholder="PIN" style="padding:12px; text-align:center; border-radius:8px; width:180px; font-size:18px;">
-        <button class="btn-app" style="background:var(--blue); width:180px; margin-top:10px;" onclick="attemptLogin()">UNLOCK</button>
+        <h2 style="margin-bottom:15px; letter-spacing:2px;">ADMIN ACCESS</h2>
+        <input type="password" id="admin_pw" placeholder="ENTER PIN" style="padding:12px; text-align:center; border-radius:8px; width:200px; font-size:18px; border:none; outline:none;">
+        <button class="btn-app" style="background:var(--blue); width:200px; margin-top:10px;" onclick="attemptLogin()">UNLOCK SYSTEM</button>
     </div>
 
     <div class="header" id="header_ui">
@@ -101,7 +100,7 @@
             <div class="l-unit l-b2 l-g2"></div>
         </div>
         <h1 class="title-main">FreeShoppingPH</h1>
-        <span id="status_label" class="title-status">LOADING...</span>
+        <span id="status_label" class="title-status">SYSTEM OFFLINE</span>
     </div>
 
     <div class="container" id="admin_ui">
@@ -109,8 +108,8 @@
         <details id="sec1">
             <summary onclick="manageAccordion('sec1')">PORTAL LINKS</summary>
             <div style="padding:10px">
-                <input type="text" id="portal_url" placeholder="Paste Link..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-bottom:8px;">
-                <button class="btn-app" style="background:var(--blue)" onclick="addPortal()">ADD PORTAL</button>
+                <input type="text" id="portal_url" placeholder="GCash/Merchant Link..." style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:8px;">
+                <button class="btn-app" style="background:var(--blue)" onclick="addPortal()">SAVE TO DATABASE</button>
             </div>
         </details>
 
@@ -123,11 +122,10 @@
             <summary onclick="manageAccordion('sec3')">SYSTEM ACCESS</summary>
             <div style="padding:10px">
                 <div class="control-panel">
-                    <label class="lever-box">
+                    <div class="lever-box">
                         <input type="checkbox" id="strict_toggle" class="lever-input" onchange="updateMode()">
                         <div class="lever-handle"></div>
-                        <div class="lever-label"></div>
-                    </label>
+                    </div>
                     <input type="tel" id="phone_num" maxlength="11" placeholder="09XXXXXXXXX" class="phone-field" oninput="autoScan(this.value)">
                 </div>
                 <div id="dynamic_btn" style="margin-top:8px"></div>
@@ -150,6 +148,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // PERSISTENT LOGIN CHECK
+        window.onload = () => {
+            if (localStorage.getItem("fs_admin_auth") === "granted") {
+                unlockApp();
+            }
+        };
+
         function manageAccordion(openId) {
             ['sec1', 'sec2', 'sec3'].forEach(id => { if(id !== openId) document.getElementById(id).removeAttribute('open'); });
         }
@@ -157,8 +162,10 @@
         async function attemptLogin() {
             const p = document.getElementById('admin_pw').value;
             const s = await db.ref('admin_settings/password').once('value');
-            if(p === (s.val() || "1234")) { localStorage.setItem("admin_auth", "granted"); unlockApp(); }
-            else alert("WRONG!");
+            if(p === (s.val() || "1234")) { 
+                localStorage.setItem("fs_admin_auth", "granted"); 
+                unlockApp(); 
+            } else alert("INVALID PIN!");
         }
 
         function unlockApp() { 
@@ -166,8 +173,10 @@
             document.getElementById('admin_ui').style.display='block'; 
         }
 
+        // MONITORING WITH FIXED SPACING
         db.ref('AvailLinks').on('value', snap => {
-            const container = document.getElementById('logs_container'); container.innerHTML = '';
+            const container = document.getElementById('logs_container'); 
+            container.innerHTML = '';
             let i=1;
             snap.forEach(c => {
                 const d = c.val(); 
@@ -175,10 +184,10 @@
                 const phone = d.beneficiary || 'None';
                 container.innerHTML += `
                 <div class="log-box">
-                    <div style="font-size:10px; width:55px; font-weight:900">LN-${i}</div>
+                    <div style="font-size:10px; width:50px; font-weight:900">LINK ${i}</div>
                     <div class="log-info">
                         <span style="color:${active? 'var(--green)':'var(--blue)'}; font-size:10px; font-weight:900;">[${active?'ACTIVE':'INIT'}]</span>
-                        <span style="font-size:11px; font-weight:900; text-decoration:underline;" onclick="copyToForm('${phone}')">${phone}</span>
+                        <span style="font-size:12px; font-weight:900; text-decoration:underline; cursor:pointer;" onclick="copyToForm('${phone}')">${phone}</span>
                     </div>
                     <div class="log-actions">
                         <button class="btn-small" style="color:orange" onclick="reuse('${c.key}')">REUSE</button>
@@ -191,8 +200,10 @@
 
         function copyToForm(num) {
             if(num === 'None' || num === 'NONE') return;
-            manageAccordion('sec3'); document.getElementById('sec3').setAttribute('open', 'true');
-            document.getElementById('phone_num').value = num; autoScan(num);
+            manageAccordion('sec3'); 
+            document.getElementById('sec3').setAttribute('open', 'true');
+            document.getElementById('phone_num').value = num; 
+            autoScan(num);
         }
 
         async function autoScan(v) {
@@ -200,13 +211,29 @@
                 const btn = document.getElementById('dynamic_btn');
                 const snap = await db.ref('whitelist/'+v).once('value');
                 const exists = snap.exists();
-                btn.innerHTML = `<button class="btn-app" style="background:${exists?'var(--red)':'var(--green)'}" onclick="${exists?'deleteAccess':'saveToDb'}('${exists?v:'whitelist'}')">${exists?'REVOKE':'GRANT'}</button>`;
+                btn.innerHTML = `<button class="btn-app" style="background:${exists?'var(--red)':'var(--green)'}" onclick="${exists?'deleteAccess':'saveToDb'}('${exists?v:'whitelist'}')">${exists?'REVOKE ACCESS':'GRANT ACCESS'}</button>`;
             }
         }
 
-        function saveToDb(path) { const p = document.getElementById('phone_num').value; db.ref(path+'/'+p).set({time:Date.now()}); autoScan(p); }
-        function deleteAccess(p) { db.ref('whitelist/'+p).remove(); db.ref('blacklist/'+p).remove(); autoScan(p); }
-        function updateMode() { db.ref('system_status').update({mode: document.getElementById('strict_toggle').checked?'open':'strict'}); }
+        function saveToDb(path) { 
+            const p = document.getElementById('phone_num').value; 
+            if(p.length === 11) {
+                db.ref(path+'/'+p).set({time:Date.now()}); 
+                autoScan(p);
+            }
+        }
+
+        function deleteAccess(p) { 
+            db.ref('whitelist/'+p).remove(); 
+            db.ref('blacklist/'+p).remove(); 
+            autoScan(p); 
+        }
+
+        function updateMode() { 
+            // Up (Checked) = open | Down (Unchecked) = strict
+            const mode = document.getElementById('strict_toggle').checked ? 'open' : 'strict';
+            db.ref('system_status').update({mode: mode}); 
+        }
         
         db.ref('system_status').on('value', snap => {
             const m = snap.val()?.mode || 'strict';
@@ -217,10 +244,10 @@
             const body = document.getElementById('main-body');
             const label = document.getElementById('status_label');
             
-            if(!isOpen) { // Restricted
+            if(!isOpen) { // Down = Restricted (Strict)
                 header.className = "header mode-off"; body.className = "mode-off-bg";
                 label.innerText = "RESTRICTED ACCESS"; label.className = "title-status status-down";
-            } else { // Open
+            } else { // Up = Open
                 header.className = "header mode-on"; body.className = "mode-on-bg";
                 label.innerText = "OPEN ACCESS"; label.className = "title-status status-up";
             }
@@ -230,8 +257,10 @@
         function removeLink(k) { db.ref('AvailLinks/'+k).remove(); }
         function addPortal() { 
             const u = document.getElementById('portal_url').value; 
-            if(u) db.ref('AvailLinks').push({url:u, status:'available', beneficiary:'NONE'}); 
-            document.getElementById('portal_url').value = ''; 
+            if(u) {
+                db.ref('AvailLinks').push({url:u, status:'available', beneficiary:'NONE'}); 
+                document.getElementById('portal_url').value = ''; 
+            }
         }
     </script>
 </body>
