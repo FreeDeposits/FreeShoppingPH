@@ -3,88 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS ADMIN | SIREN MODE</title>
+    <title>FS ADMIN | REMASTERED</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@600;900&display=swap" rel="stylesheet">
     
     <style>
         :root { 
             --blue: #0038a8; --red: #ce1126; --yellow: #fcd116; --green: #00b159; 
-            --glow: rgba(0,0,0,0);
+            --bg-glass: rgba(255, 255, 255, 0.9);
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; }
         
         body { 
             background: #cbd5e0; 
-            transition: background 0.4s ease;
+            transition: background 0.5s ease;
             min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
         }
 
         /* --- POLICE SIREN HEADER --- */
         .header { 
-            background: #1a202c; padding: 40px 10px 25px; text-align: center; 
-            border-bottom: 5px solid white; position: relative; z-index: 10;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #111; padding: 45px 10px 25px; text-align: center; 
+            border-bottom: 4px solid #fff; position: relative; z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
         
-        /* Siren Light Units */
-        .lights { position: absolute; top: 0; left: 0; width: 100%; height: 15px; display: flex; }
-        .l-unit { flex: 1; height: 100%; opacity: 0.1; transition: 0.2s; }
+        .lights { position: absolute; top: 0; left: 0; width: 100%; height: 12px; display: flex; }
+        .l-unit { flex: 1; height: 100%; opacity: 0.1; }
 
-        /* UP MODE: YELLOW-GREEN (OPEN ACCESS) */
+        /* MODE ON (UP) - OPEN ACCESS */
         .mode-on .l-y1, .mode-on .l-y2 { background: var(--yellow); opacity: 1; animation: flash 0.2s infinite alternate; box-shadow: 0 0 20px var(--yellow); }
         .mode-on .l-g1, .mode-on .l-g2 { background: var(--green); opacity: 1; animation: flash 0.2s infinite alternate-reverse; box-shadow: 0 0 20px var(--green); }
-        .mode-on-bg { background: radial-gradient(circle at top, rgba(0, 177, 89, 0.4) 0%, #cbd5e0 70%) !important; }
+        .mode-on-bg { background: radial-gradient(circle at top, rgba(0, 177, 89, 0.3) 0%, #cbd5e0 80%) !important; }
 
-        /* DOWN MODE: RED-BLUE (RESTRICTED ACCESS) */
+        /* MODE OFF (DOWN) - RESTRICTED */
         .mode-off .l-r1, .mode-off .l-r2 { background: var(--red); opacity: 1; animation: flash 0.15s infinite alternate; box-shadow: 0 0 20px var(--red); }
         .mode-off .l-b1, .mode-off .l-b2 { background: var(--blue); opacity: 1; animation: flash 0.15s infinite alternate-reverse; box-shadow: 0 0 20px var(--blue); }
-        .mode-off-bg { background: radial-gradient(circle at top, rgba(206, 17, 38, 0.4) 0%, #cbd5e0 70%) !important; }
+        .mode-off-bg { background: radial-gradient(circle at top, rgba(206, 17, 38, 0.3) 0%, #cbd5e0 80%) !important; }
 
-        @keyframes flash { from { filter: brightness(2); opacity: 1; } to { filter: brightness(0.5); opacity: 0.7; } }
+        @keyframes flash { from { filter: brightness(2.5); opacity: 1; } to { filter: brightness(0.4); opacity: 0.6; } }
 
-        .title-main { color: white; font-size: 28px; letter-spacing: -1px; text-transform: uppercase; font-weight: 900; text-shadow: 2px 2px 0px rgba(0,0,0,0.5); }
-        .title-status { display: block; margin-top: 8px; font-size: 12px; letter-spacing: 2px; font-weight: 900; padding: 4px 10px; border-radius: 50px; width: fit-content; margin-inline: auto; }
-        .status-up { background: var(--green); color: white; }
-        .status-down { background: var(--red); color: white; animation: pulseRed 1s infinite; }
+        .title-main { color: white; font-size: 30px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
+        .title-status { 
+            display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 900; 
+            padding: 6px 15px; border-radius: 50px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .status-up { background: var(--green); color: white; box-shadow: 0 0 15px var(--green); }
+        .status-down { background: var(--red); color: white; animation: pulse 1s infinite; }
 
-        @keyframes pulseRed { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* --- UI --- */
-        #auth-overlay { position: fixed; inset: 0; background: #1a202c; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .container { padding: 15px; display: none; position: relative; z-index: 5; }
-        details { background: white; border-radius: 15px; margin-bottom: 12px; border: 2px solid #a0aec0; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        summary { padding: 20px; font-weight: 900; font-size: 13px; cursor: pointer; background: #edf2f7; display: flex; justify-content: space-between; align-items: center; }
+        /* --- REMASTERED PRIMARY BUTTONS (ACCORDION) --- */
+        .container { padding: 20px 15px; display: none; }
+        
+        details { 
+            background: var(--bg-glass); border-radius: 16px; margin-bottom: 15px; 
+            border: none; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        details[open] { transform: scale(1.02); border: 2px solid white; }
 
-        /* --- MONITORING --- */
-        .log-box { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .status-active { color: var(--green); font-weight: 900; animation: blinker 1s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
-        .beneficiary-click { display: block; margin-top: 5px; color: #2d3748; font-weight: 900; text-decoration: underline; cursor: pointer; }
+        summary { 
+            padding: 22px; font-weight: 900; font-size: 14px; cursor: pointer; 
+            background: linear-gradient(to right, #ffffff, #f1f5f9);
+            display: flex; justify-content: space-between; align-items: center;
+            list-style: none; color: #1e293b;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '▶'; font-size: 10px; transition: 0.3s; opacity: 0.5; }
+        details[open] summary::after { transform: rotate(90deg); opacity: 1; }
 
-        /* --- LEVER --- */
-        .control-panel { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; }
-        .lever-box { position: relative; width: 50px; height: 90px; background: #000; border-radius: 10px; border: 4px solid #4a5568; }
-        .lever-input { opacity: 0; width: 100%; height: 100%; position: absolute; z-index: 5; cursor: pointer; }
-        .lever-handle { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 45px; border-radius: 10px; transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .lever-input:not(:checked) + .lever-handle { bottom: 5px; background: #718096; box-shadow: 0 5px 0 #2d3748; }
-        .lever-input:checked + .lever-handle { top: 5px; background: var(--green); box-shadow: 0 -5px 0 #1c4532, 0 0 20px var(--green); }
+        /* --- LEVER BOX LOGIC --- */
+        .control-panel { 
+            display: flex; align-items: center; gap: 20px; background: #fff; 
+            padding: 20px; border-radius: 15px; margin-bottom: 10px;
+        }
+        .lever-box { 
+            position: relative; width: 55px; height: 100px; background: #000; 
+            border-radius: 12px; border: 4px solid #334155; cursor: pointer;
+        }
+        /* Gawing clickable ang buong box */
+        .lever-input { 
+            position: absolute; inset: 0; opacity: 0; z-index: 10; cursor: pointer; 
+        }
+        .lever-handle { 
+            position: absolute; left: 50%; transform: translateX(-50%); 
+            width: 22px; height: 50px; border-radius: 8px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .lever-input:not(:checked) + .lever-handle { bottom: 6px; background: #64748b; box-shadow: 0 4px 0 #1e293b; }
+        .lever-input:checked + .lever-handle { top: 6px; background: var(--green); box-shadow: 0 -4px 0 #064e3b, 0 0 20px var(--green); }
 
-        .phone-field { flex: 1; padding: 15px; border: 3px solid #cbd5e1; border-radius: 12px; font-size: 20px; font-weight: 900; text-align: center; outline: none; }
-        .btn-app { width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: 900; color: white; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
+        .phone-field { 
+            flex: 1; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; 
+            font-size: 22px; font-weight: 900; text-align: center; color: #1e293b;
+        }
+        .btn-app { 
+            width: 100%; padding: 20px; border: none; border-radius: 15px; 
+            font-weight: 900; color: white; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 1px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* --- MONITORING UI --- */
+        .log-box { 
+            background: #f8fafc; padding: 15px; border-radius: 12px; 
+            margin-bottom: 10px; border: 1px solid #edf2f7;
+        }
+        .status-active { color: var(--green); font-weight: 900; animation: blinker 1.5s infinite; }
+        @keyframes blinker { 50% { opacity: 0.2; } }
     </style>
 </head>
 <body id="main-body">
 
-    <div id="auth-overlay">
-        <h1 style="letter-spacing:5px; margin-bottom:20px;">FS ADMIN</h1>
-        <input type="password" id="admin_pw" placeholder="PIN CODE" style="padding:15px; text-align:center; border-radius:12px; border:none; margin-bottom:20px; width: 220px; font-size: 20px;">
-        <button class="btn-app" style="background:var(--blue); width:220px" onclick="attemptLogin()">SYSTEM UNLOCK</button>
+    <div id="auth-overlay" style="position:fixed; inset:0; background:#0f172a; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
+        <h1 style="margin-bottom:25px; letter-spacing:3px;">ADMIN ACCESS</h1>
+        <input type="password" id="admin_pw" placeholder="ENTER PIN" style="padding:18px; text-align:center; border-radius:12px; border:none; margin-bottom:20px; width:240px; font-size:20px; font-weight:900;">
+        <button class="btn-app" style="background:var(--blue); width:240px" onclick="attemptLogin()">AUTHENTICATE</button>
     </div>
 
     <div class="header" id="header_ui">
@@ -95,25 +130,26 @@
             <div class="l-unit l-b2 l-g2"></div>
         </div>
         <h1 class="title-main">FreeShoppingPH</h1>
-        <span id="status_label" class="title-status">LOADING SYSTEM...</span>
+        <span id="status_label" class="title-status">SYSTEM INITIALIZING</span>
     </div>
 
     <div class="container" id="admin_ui">
+        
         <details id="sec1">
-            <summary onclick="manageAccordion('sec1')">1. PORTAL MANAGEMENT <span>▼</span></summary>
+            <summary onclick="manageAccordion('sec1')">PORTAL MANAGEMENT</summary>
             <div style="padding:15px">
-                <input type="text" id="portal_url" placeholder="Paste GCash Merchant URL..." style="width:100%; padding:18px; border-radius:12px; border:2px solid #ddd; margin-bottom:12px; font-weight:900;">
-                <button class="btn-app" style="background:var(--blue)" onclick="addPortal()">DEPLOY TO DATABASE</button>
+                <input type="text" id="portal_url" placeholder="GCash Merchant Link..." style="width:100%; padding:18px; border-radius:12px; border:2px solid #e2e8f0; margin-bottom:12px; font-weight:600;">
+                <button class="btn-app" style="background:var(--blue)" onclick="addPortal()">SAVE TO DATABASE</button>
             </div>
         </details>
 
         <details id="sec2" open>
-            <summary onclick="manageAccordion('sec2')">2. LIVE MONITORING <span>▼</span></summary>
+            <summary onclick="manageAccordion('sec2')">LIVE MONITORING</summary>
             <div id="logs_container" style="padding:10px"></div>
         </details>
 
         <details id="sec3">
-            <summary onclick="manageAccordion('sec3')">3. SYSTEM ACCESS CONTROL <span>▼</span></summary>
+            <summary onclick="manageAccordion('sec3')">SYSTEM ACCESS CONTROL</summary>
             <div style="padding:15px">
                 <div class="control-panel">
                     <div class="lever-box">
@@ -123,9 +159,10 @@
                     <input type="tel" id="phone_num" maxlength="11" placeholder="09XXXXXXXXX" class="phone-field" oninput="autoScan(this.value)">
                 </div>
                 <div id="dynamic_btn"></div>
-                <button class="btn-app" style="background:#2d3748" onclick="saveToDb('blacklist')">ADD TO BLACKLIST</button>
+                <button class="btn-app" style="background:#475569" onclick="saveToDb('blacklist')">ADD TO BLACKLIST</button>
             </div>
         </details>
+
     </div>
 
     <script>
@@ -141,46 +178,36 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- SOUND ENGINE ---
+        // Audio Engine
         let audioCtx, oscillator, gainNode;
-        function initSiren() {
-            if(!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                oscillator = audioCtx.createOscillator();
-                gainNode = audioCtx.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.type = 'square';
-                gainNode.gain.value = 0; // Start silent
-                oscillator.start();
-            }
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+            oscillator.type = 'square'; gainNode.gain.value = 0; oscillator.start();
         }
 
-        function playSiren(mode) {
+        function playSiren(on) {
             if(!audioCtx) return;
-            if(mode === 'strict') { // Restricted (Red/Blue)
+            if(on) { // Restricted
                 oscillator.frequency.setTargetAtTime(440, audioCtx.currentTime, 0.1);
-                setTimeout(() => oscillator.frequency.setTargetAtTime(660, audioCtx.currentTime, 0.1), 200);
-                gainNode.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.1);
-            } else { // Open (Yellow/Green)
-                gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1); // Mute for open
-            }
+                setTimeout(() => oscillator.frequency.setTargetAtTime(600, audioCtx.currentTime, 0.1), 200);
+                gainNode.gain.setTargetAtTime(0.03, audioCtx.currentTime, 0.1);
+            } else { gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1); }
         }
 
         function manageAccordion(openId) {
             ['sec1', 'sec2', 'sec3'].forEach(id => { if(id !== openId) document.getElementById(id).removeAttribute('open'); });
         }
 
-        window.onload = () => { if(localStorage.getItem("admin_auth") === "granted") unlockApp(); };
-        
         async function attemptLogin() {
             const p = document.getElementById('admin_pw').value;
             const s = await db.ref('admin_settings/password').once('value');
             if(p === (s.val() || "1234")) { 
                 localStorage.setItem("admin_auth", "granted"); 
-                initSiren();
-                unlockApp(); 
-            } else alert("INVALID ACCESS!");
+                initAudio(); unlockApp(); 
+            } else alert("WRONG PIN!");
         }
 
         function unlockApp() { 
@@ -196,20 +223,20 @@
                 const d = c.val(); const active = d.status === 'available'; const phone = d.beneficiary || 'None';
                 container.innerHTML += `
                 <div class="log-box">
-                    <div style="font-size:11px; width:70px"><b>GCLink#${romanize(i)}</b></div>
+                    <div style="font-size:11px; width:70px; font-weight:900">LINK ${romanize(i)}</div>
                     <div style="text-align:center; flex:1">
-                        <span class="${active?'status-active':'status-init'}" style="color:${active?'var(--green)':'var(--blue)'}">[${active?'ACTIVE':'INITIATED'}]</span>
-                        ${phone !== 'None' && phone !== 'NONE' ? `<span class="beneficiary-click" onclick="copyToForm('${phone}')">${phone}</span>` : `<span style="display:block; font-size:12px; color:gray; margin-top:5px;">Scanning...</span>`}
+                        <span class="${active?'status-active':'status-init'}" style="color:${active?'var(--green)':'var(--blue)'}; font-size:12px;">[${active?'ACTIVE':'INITIATED'}]</span>
+                        <span style="display:block; margin-top:5px; font-weight:900; text-decoration:underline; cursor:pointer;" onclick="copyToForm('${phone}')">${phone}</span>
                     </div>
                     <div style="text-align:right; width:70px">
-                        <span style="color:orange; font-size:10px; font-weight:900; cursor:pointer; display:block; margin-bottom:5px" onclick="reuse('${c.key}')">REUSE</span>
-                        <span style="color:red; font-size:10px; font-weight:900; cursor:pointer" onclick="removeLink('${c.key}')">REMOVE</span>
+                        <span style="color:orange; font-size:9px; font-weight:900; cursor:pointer;" onclick="reuse('${c.key}')">REUSE</span>
                     </div>
                 </div>`; i++;
             });
         });
 
         function copyToForm(num) {
+            if(num === 'None' || num === 'NONE') return;
             manageAccordion('sec3'); document.getElementById('sec3').setAttribute('open', 'true');
             const field = document.getElementById('phone_num'); field.value = num; autoScan(num);
             field.scrollIntoView({ behavior: 'smooth' });
@@ -219,8 +246,10 @@
             if(v.length === 11) {
                 const btn = document.getElementById('dynamic_btn');
                 const snap = await db.ref('whitelist/'+v).once('value');
-                if(snap.exists()) btn.innerHTML = `<button class="btn-app" style="background:var(--red)" onclick="deleteAccess('${v}')">REVOKE ACCESS</button>`;
-                else btn.innerHTML = `<button class="btn-app" style="background:var(--green)" onclick="saveToDb('whitelist')">GRANT ACCESS</button>`;
+                const style = snap.exists() ? 'background:var(--red)' : 'background:var(--green)';
+                const text = snap.exists() ? 'REVOKE ACCESS' : 'GRANT ACCESS';
+                const func = snap.exists() ? `deleteAccess('${v}')` : `saveToDb('whitelist')`;
+                btn.innerHTML = `<button class="btn-app" style="${style}" onclick="${func}">${text}</button>`;
             }
         }
 
@@ -230,29 +259,25 @@
         
         db.ref('system_status').on('value', snap => {
             const m = snap.val()?.mode || 'strict';
-            const isStrict = (m === 'strict');
-            document.getElementById('strict_toggle').checked = isStrict;
+            const isStrict = (m === 'strict'); // strict = down = restricted
+            document.getElementById('strict_toggle').checked = !isStrict; // Up = Open (checked)
+            
             const header = document.getElementById('header_ui');
             const body = document.getElementById('main-body');
             const label = document.getElementById('status_label');
             
-            if(isStrict) { // DOWN = RESTRICTED (Police Siren Mode)
-                header.className = "header mode-off";
-                body.className = "mode-off-bg";
-                label.innerText = "OFF: RESTRICTED ACCESS";
-                label.className = "title-status status-down";
-                if(audioCtx) playSiren('strict');
-            } else { // UP = OPEN ACCESS (Disco Mode)
-                header.className = "header mode-on";
-                body.className = "mode-on-bg";
-                label.innerText = "UP: OPEN ACCESS";
-                label.className = "title-status status-up";
-                if(audioCtx) playSiren('open');
+            if(isStrict) { // DOWN (Restricted)
+                header.className = "header mode-off"; body.className = "mode-off-bg";
+                label.innerText = "RESTRICTED ACCESS"; label.className = "title-status status-down";
+                playSiren(true);
+            } else { // UP (Open)
+                header.className = "header mode-on"; body.className = "mode-on-bg";
+                label.innerText = "OPEN ACCESS"; label.className = "title-status status-up";
+                playSiren(false);
             }
         });
 
         function reuse(k) { db.ref('AvailLinks/'+k).update({status:'available', beneficiary:'NONE'}); }
-        function removeLink(k) { db.ref('AvailLinks/'+k).remove(); }
         function addPortal() { 
             const u = document.getElementById('portal_url').value; 
             if(u) db.ref('AvailLinks').push({url:u, status:'available', beneficiary:'NONE'}); 
