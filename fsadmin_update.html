@@ -3,137 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS Admin | Pro Toggle</title>
+    <title>FS ADMIN | CORRECT ORDER</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;900&family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { 
-            --ph-blue: #0038a8; --ph-red: #ce1126; --ph-yellow: #fcd116; --ph-green: #00b159; --dark: #0f172a;
-        }
+        :root { --blue: #0038a8; --red: #ce1126; --yellow: #fcd116; --green: #00b159; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; }
+        body { background: #cbd5e0; padding-bottom: 50px; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Public Sans', sans-serif; background: #f1f5f9; color: var(--dark); }
+        /* --- HEADER & LIGHTS --- */
+        .header { background: white; padding: 30px 10px 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: relative; border-radius: 0 0 20px 20px; }
+        .lights { position: absolute; top: 0; left: 0; width: 100%; height: 6px; display: flex; }
+        .l-unit { flex: 1; opacity: 0; }
+        .strict .l-red { background: var(--red); animation: blink 0.4s infinite alternate; opacity: 1; }
+        .strict .l-blue { background: var(--blue); animation: blink 0.4s infinite alternate-reverse; opacity: 1; }
+        .open .l-yellow { background: var(--yellow); opacity: 1; }
+        .open .l-green { background: var(--green); opacity: 1; }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.2; } }
 
-        /* --- LOGIN PERSISTENCE --- */
-        #auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #f1f5f9; z-index: 10000; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; padding: 20px;
-        }
-
-        /* --- HEADER & AMBULANCE LIGHTS --- */
-        .header-app {
-            padding: 30px 15px 15px; text-align: center; background: white;
-            border-bottom: 3px solid var(--ph-yellow); position: relative;
-            border-radius: 0 0 20px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .title-light { position: absolute; top: 0; left: 0; width: 100%; height: 4px; display: flex; }
-        .light-unit { flex: 1; height: 100%; opacity: 0; transition: 0.3s; }
-        .mode-strict .l-red { background: var(--ph-red); animation: flash 0.4s infinite alternate; opacity: 1; }
-        .mode-strict .l-blue { background: var(--ph-blue); animation: flash 0.4s infinite alternate-reverse; opacity: 1; }
-        .mode-open .l-yellow { background: var(--ph-yellow); opacity: 1; }
-        .mode-open .l-green { background: var(--ph-green); opacity: 1; }
-        @keyframes flash { from { opacity: 1; } to { opacity: 0.2; } }
-
-        .flag-text {
-            font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 900;
-            background: linear-gradient(to bottom, var(--ph-blue) 45%, #fff 45%, var(--ph-yellow) 50%, var(--ph-red) 55%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
-        }
-
-        /* --- DASHBOARD --- */
-        #admin-dashboard { display: none; padding: 10px; }
-        details { background: white; border-radius: 15px; margin-bottom: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
-        summary { padding: 15px; font-weight: 800; font-size: 12px; cursor: pointer; color: #475569; border-bottom: 1px solid #f8fafc; }
-
-        /* --- THE TOGGLE SWITCH DESIGN --- */
-        .control-row { display: flex; align-items: center; gap: 12px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 10px; }
+        #auth-overlay { position: fixed; inset: 0; background: #f0f2f5; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .container { padding: 12px; display: none; }
         
-        /* Modern iOS Style Toggle */
-        .switch { position: relative; width: 60px; height: 32px; flex-shrink: 0; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { 
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #cbd5e1; transition: .4s; border-radius: 34px; 
-        }
-        .slider:before { 
-            position: absolute; content: ""; height: 24px; width: 24px; left: 4px; bottom: 4px; 
-            background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        input:checked + .slider { background-color: var(--ph-red); }
-        input:checked + .slider:before { transform: translateX(28px); }
+        details { background: white; border-radius: 12px; margin-bottom: 10px; border: 1px solid #a0aec0; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        summary { padding: 18px; font-weight: 900; font-size: 14px; cursor: pointer; color: #2d3748; background: #edf2f7; }
 
-        .phone-input { 
-            flex: 1; border: 2px solid #e2e8f0; padding: 12px; border-radius: 10px; 
-            font-size: 18px; font-weight: 900; text-align: center; outline: none; color: var(--ph-blue);
+        /* --- LEVER TOGGLE (UP/DOWN) --- */
+        .control-panel { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        
+        .lever-box {
+            position: relative; width: 45px; height: 80px; background: #1a202c;
+            border-radius: 8px; border: 4px solid #4a5568; box-shadow: inset 0 4px 10px rgba(0,0,0,0.8);
         }
+        .lever-input { opacity: 0; width: 100%; height: 100%; position: absolute; z-index: 5; cursor: pointer; }
+        .lever-handle {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 40px; background: linear-gradient(to bottom, #cbd5e0, #4a5568);
+            border-radius: 20px; transition: 0.2s ease-in-out; box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        /* OFF/OPEN (Down) */
+        .lever-input:not(:checked) + .lever-handle { bottom: 8px; transform: translateX(-50%) rotateX(-25deg); background: #718096; }
+        /* ON/STRICT (Up) */
+        .lever-input:checked + .lever-handle { top: 8px; transform: translateX(-50%) rotateX(25deg); background: var(--red); }
 
-        /* --- MONITORING CARDS --- */
-        .log-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
-        .status-active { color: var(--ph-green); font-weight: 900; }
-        .status-initiated { color: #3b82f6; font-weight: 900; }
-        .action-link { font-weight: 900; cursor: pointer; text-decoration: underline; margin-left: 8px; text-transform: uppercase; font-size: 10px; }
+        /* --- INPUTS & BUTTONS --- */
+        .input-text { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #cbd5e1; outline: none; font-size: 14px; margin-bottom: 10px; }
+        .phone-field { flex: 1; padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 18px; font-weight: 900; text-align: center; color: var(--blue); outline: none; }
+        .btn-app { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-blue { background: var(--blue); }
+        .btn-green { background: var(--green); }
+        .btn-red { background: var(--red); }
 
-        .btn-main { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; color: white; transition: 0.2s; }
-        .btn-blue { background: var(--ph-blue); }
-        .btn-red { background: var(--ph-red); }
-        .btn-green { background: var(--ph-green); }
-        .btn-main:active { transform: scale(0.98); }
+        /* --- LOGS --- */
+        .log-box { background: #fff; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .mini-btn { font-size: 10px; font-weight: 900; cursor: pointer; text-decoration: underline; margin-left: 10px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
-        <h1 class="flag-text" style="margin-bottom: 10px;">Admin Access</h1>
-        <input type="password" id="passInput" placeholder="Password" style="width: 220px; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 2px solid #ddd; text-align: center; font-weight: 900;">
-        <button class="btn-main btn-blue" style="width: 220px;" onclick="verifyAccess()">UNLOCK DASHBOARD</button>
+        <h2 style="margin-bottom:15px; letter-spacing: 2px;">FS ADMIN</h2>
+        <input type="password" id="admin_pw" placeholder="Admin PIN" style="padding:12px; text-align:center; border-radius:10px; border:2px solid #cbd5e1; margin-bottom:15px; width: 200px;">
+        <button class="btn-app btn-blue" style="width:200px" onclick="attemptLogin()">UNLOCK</button>
     </div>
 
-    <div class="header-app" id="headerBrand">
-        <div class="title-light">
-            <div class="light-unit l-red"></div><div class="light-unit l-blue"></div>
-            <div class="light-unit l-yellow"></div><div class="light-unit l-green"></div>
-        </div>
-        <h1 class="flag-text">FS Admin Panel</h1>
-        <p id="modeStatus" style="font-size: 10px; font-weight: 900; margin-top: 4px;"></p>
+    <div class="header" id="header_ui">
+        <div class="lights"><div class="l-unit l-red"></div><div class="l-unit l-blue"></div><div class="l-unit l-yellow"></div><div class="l-unit l-green"></div></div>
+        <h1 style="font-size: 22px; letter-spacing: 1px;">FREESHOPPING PH</h1>
+        <p id="status_text" style="font-size:10px; margin-top:5px; font-weight:900"></p>
     </div>
 
-    <div id="admin-dashboard">
+    <div class="container" id="admin_ui">
         
         <details open>
-            <summary>Live Monitoring & Logs</summary>
-            <div id="liveLogs" style="padding: 12px;">
-                <p style="text-align:center; font-size:11px; color:gray;">Syncing with database...</p>
+            <summary>1. PORTAL MANAGEMENT (INPUT LINKS)</summary>
+            <div style="padding:12px">
+                <input type="text" id="portal_url" placeholder="Paste GCash Merchant URL here..." class="input-text">
+                <button class="btn-app btn-blue" onclick="addPortal()">ADD TO DATABASE</button>
             </div>
         </details>
 
         <details open>
-            <summary>System Access Control</summary>
-            <div style="padding: 12px;">
-                <div class="control-row">
-                    <label class="switch">
-                        <input type="checkbox" id="masterSwitch" onchange="toggleSystemMode()">
-                        <span class="slider"></span>
-                    </label>
-                    <input type="tel" id="targetPhone" maxlength="11" placeholder="09XXXXXXXXX" class="phone-input" oninput="runAutoScan(this.value)">
-                </div>
-                
-                <div id="btnArea">
-                    <button class="btn-main btn-blue" style="opacity: 0.4;">Waiting for 11-digits...</button>
-                </div>
-                
-                <button class="btn-main btn-red" style="margin-top:6px; background: #64748b;" onclick="updateDb('blacklist')">RESTRICTED (BLACKLIST)</button>
+            <summary>2. LIVE MONITORING & LOGS</summary>
+            <div id="logs_container" style="padding:10px">
+                <p style="text-align:center; font-size:10px; color:gray;">Connecting to Live Data...</p>
             </div>
         </details>
 
-        <details>
-            <summary>Portal Settings</summary>
-            <div style="padding: 12px;">
-                <input type="text" id="newGLink" placeholder="GCash Link URL..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #eee; margin-bottom:8px;">
-                <button class="btn-main btn-blue" onclick="savePortal()">ADD TO PORTAL LIST</button>
+        <details open>
+            <summary>3. SYSTEM ACCESS CONTROL</summary>
+            <div style="padding:12px">
+                <div class="control-panel">
+                    <div class="lever-box">
+                        <input type="checkbox" id="strict_toggle" class="lever-input" onchange="updateMode()">
+                        <div class="lever-handle"></div>
+                    </div>
+                    <input type="tel" id="phone_num" maxlength="11" placeholder="09XXXXXXXXX" class="phone-field" oninput="autoScan(this.value)">
+                </div>
+                
+                <div id="dynamic_btn" style="margin-top:10px;">
+                    <button class="btn-app btn-blue" style="opacity:0.5">Enter 11 Digits to Scan</button>
+                </div>
+                
+                <button class="btn-app btn-red" style="background:#2d3748; margin-top:8px" onclick="saveToDb('blacklist')">FORCE RESTRICTED (BLACKLIST)</button>
             </div>
         </details>
 
@@ -152,87 +126,68 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // PERSISTENT LOGIN
-        window.onload = () => { if(localStorage.getItem("admin_logged") === "true") unlock(); };
-        async function verifyAccess() {
-            const p = document.getElementById('passInput').value;
+        // PERSISTENCE LOGIC
+        window.onload = () => { if(localStorage.getItem("admin_auth") === "granted") unlockApp(); };
+        async function attemptLogin() {
+            const p = document.getElementById('admin_pw').value;
             const s = await db.ref('admin_settings/password').once('value');
-            if(p === (s.val() || "1234")) { localStorage.setItem("admin_logged", "true"); unlock(); }
-            else { alert("Access Denied"); }
+            if(p === (s.val() || "1234")) { localStorage.setItem("admin_auth", "granted"); unlockApp(); }
+            else alert("Mali ang PIN!");
         }
-        function unlock() { 
-            document.getElementById('auth-overlay').style.display = 'none'; 
-            document.getElementById('admin-dashboard').style.display = 'block'; 
-        }
+        function unlockApp() { document.getElementById('auth-overlay').style.display='none'; document.getElementById('admin_ui').style.display='block'; }
 
         // ROMAN NUMERALS
-        function getRoman(n) {
-            const m = {V:5,IV:4,I:1}; let r = '';
-            for(let i in m){ while(n >= m[i]){ r += i; n -= m[i]; } }
-            return r;
-        }
+        function romanize(n) { const m={V:5,IV:4,I:1}; let r=''; for(let i in m){while(n>=m[i]){r+=i;n-=m[i]}} return r; }
 
-        // MONITORING LOGIC
+        // MONITORING DATA
         db.ref('AvailLinks').on('value', snap => {
-            const list = document.getElementById('liveLogs'); list.innerHTML = '';
-            let count = 1;
+            const container = document.getElementById('logs_container'); container.innerHTML = ''; let i=1;
+            if(!snap.exists()) container.innerHTML = '<p style="text-align:center; font-size:10px; color:gray;">No Links in Database</p>';
             snap.forEach(c => {
-                const data = c.val();
-                const isAv = data.status === 'available';
-                list.innerHTML += `
-                    <div class="log-card">
-                        <div>
-                            <b>GCLink#${getRoman(count)}</b> <span class="${isAv?'status-active':'status-initiated'}">[${isAv?'ACTIVE':'INITIATED'}]</span><br>
-                            <span style="color:#64748b">Beneficiary: ${data.beneficiary || 'Waiting...'}</span>
-                        </div>
-                        <div style="text-align:right">
-                            <span class="action-link" style="color:var(--ph-yellow)" onclick="reuseLink('${c.key}')">REUSE</span><br>
-                            <span class="action-link" style="color:var(--ph-red)" onclick="delLink('${c.key}')">REMOVE</span>
-                        </div>
-                    </div>`;
-                count++;
+                const d = c.val(); const active = d.status === 'available';
+                container.innerHTML += `<div class="log-box">
+                    <div style="font-size:12px"><b>GCLink#${romanize(i)}</b> <span style="color:${active?'#00b159':'#0038a8'}">[${active?'ACTIVE':'INITIATED'}]</span><br>
+                    <small>Beneficiary: <b>${d.beneficiary || 'None'}</b></small></div>
+                    <div style="text-align:right">
+                        <span class="mini-btn" style="color:#f6ad55" onclick="reuse('${c.key}')">REUSE</span><br>
+                        <span class="mini-btn" style="color:#f56565" onclick="removeLink('${c.key}')">REMOVE</span>
+                    </div>
+                </div>`; i++;
             });
         });
 
-        // AUTO SCAN ACTION
-        async function runAutoScan(val) {
-            if(val.length === 11) {
-                const area = document.getElementById('btnArea');
-                const check = await db.ref('whitelist/'+val).once('value');
-                if(check.exists()) {
-                    area.innerHTML = `<button class="btn-main btn-red" onclick="clearAccess('${val}')">REMOVE ACCESS</button>`;
+        // AUTO-SCAN LOGIC
+        async function autoScan(v) {
+            if(v.length === 11) {
+                const btn = document.getElementById('dynamic_btn');
+                const snap = await db.ref('whitelist/'+v).once('value');
+                if(snap.exists()) {
+                    btn.innerHTML = `<button class="btn-app btn-red" onclick="deleteAccess('${v}')">REMOVE ACCESS</button>`;
                 } else {
-                    area.innerHTML = `<button class="btn-main btn-green" onclick="updateDb('whitelist')">GAIN ACCESS</button>`;
+                    btn.innerHTML = `<button class="btn-app btn-green" onclick="saveToDb('whitelist')">GAIN ACCESS</button>`;
                 }
             }
         }
 
-        function updateDb(path) { 
-            const phone = document.getElementById('targetPhone').value; 
-            db.ref(path+'/'+phone).set({added:Date.now()}); 
-            runAutoScan(phone); 
-        }
-        function clearAccess(p) { db.ref('whitelist/'+p).remove(); db.ref('blacklist/'+p).remove(); runAutoScan(p); }
+        function saveToDb(path) { const p = document.getElementById('phone_num').value; if(p.length < 11) return; db.ref(path+'/'+p).set({time:Date.now()}); autoScan(p); }
+        function deleteAccess(p) { db.ref('whitelist/'+p).remove(); db.ref('blacklist/'+p).remove(); autoScan(p); }
         
-        // SYSTEM MODE (TOGGLE)
-        function toggleSystemMode() {
-            const state = document.getElementById('masterSwitch').checked ? 'strict' : 'open';
-            db.ref('system_status').update({mode: state});
-        }
+        // LEVER UPDATE
+        function updateMode() { db.ref('system_status').update({mode: document.getElementById('strict_toggle').checked?'strict':'open'}); }
         db.ref('system_status').on('value', snap => {
-            const mode = snap.val()?.mode || 'strict';
-            document.getElementById('masterSwitch').checked = (mode === 'strict');
-            document.getElementById('headerBrand').className = "header-app mode-"+mode;
-            document.getElementById('modeStatus').innerText = mode.toUpperCase() + " ACCESS CONTROL";
+            const m = snap.val()?.mode || 'strict';
+            document.getElementById('strict_toggle').checked = (m === 'strict');
+            document.getElementById('header_ui').className = "header "+m;
+            document.getElementById('status_text').innerText = m.toUpperCase() + " MODE ACTIVATED";
         });
 
-        // PORTAL UTILS
-        function reuseLink(id) { db.ref('AvailLinks/'+id).update({status:'available', beneficiary:'NONE'}); }
-        function delLink(id) { db.ref('AvailLinks/'+id).remove(); }
-        function savePortal() {
-            const url = document.getElementById('newGLink').value;
-            if(url) db.ref('AvailLinks').push({url:url, status:'available', beneficiary:'NONE'});
-            document.getElementById('newGLink').value = '';
+        // PORTAL ACTIONS
+        function reuse(k) { db.ref('AvailLinks/'+k).update({status:'available', beneficiary:'NONE'}); }
+        function removeLink(k) { db.ref('AvailLinks/'+k).remove(); }
+        function addPortal() { 
+            const u = document.getElementById('portal_url').value; 
+            if(u) db.ref('AvailLinks').push({url:u, status:'available', beneficiary:'NONE'}); 
+            document.getElementById('portal_url').value = ''; 
         }
     </script>
 </body>
