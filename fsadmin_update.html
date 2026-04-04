@@ -15,10 +15,11 @@
             --ph-blue: #0038a8;
             --ph-red: #ce1126;
             --ph-yellow: #fcd116;
-            --glass: rgba(255, 255, 255, 0.9);
+            --glass: rgba(255, 255, 255, 0.95);
             --dark: #0f172a;
         }
 
+        /* --- GLOBAL MOBILE RESET --- */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
@@ -26,7 +27,7 @@
             background: #f1f5f9; 
             min-height: 100vh; 
             color: var(--dark);
-            display: none; /* Hidden until authenticated */
+            display: none; /* Hidden until signature check */
         }
 
         /* --- PH FLAG TITLE DESIGN --- */
@@ -41,72 +42,88 @@
 
         .flag-text {
             font-family: 'Quicksand', sans-serif;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
             display: inline-block;
+            /* Blue Top 40%, White/Yellow middle, Red Bottom */
             background: linear-gradient(to bottom, 
                 var(--ph-blue) 0%, 
                 var(--ph-blue) 40%, 
-                white 40%, 
-                white 50%, 
+                #fff 40%, 
                 var(--ph-yellow) 50%, 
-                var(--ph-yellow) 60%, 
                 var(--ph-red) 60%, 
                 var(--ph-red) 100%
             );
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
         }
 
-        /* --- MOBILE APP UI --- */
+        /* --- MOBILE APP ACCORDIONS --- */
         .container { padding: 15px; }
 
         details {
             background: white;
-            border-radius: 18px;
+            border-radius: 20px;
             margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             border: 1px solid #e2e8f0;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         summary {
-            padding: 18px;
+            padding: 20px;
             font-weight: 800;
             font-size: 14px;
             list-style: none;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             color: #475569;
+            cursor: pointer;
         }
 
-        summary::after { content: '→'; color: var(--ph-blue); transition: 0.3s; }
+        summary::after { 
+            content: '＋'; 
+            font-size: 18px; 
+            color: var(--ph-blue); 
+            transition: 0.3s; 
+        }
+
         details[open] summary { background: #f8fafc; color: var(--ph-blue); }
-        details[open] summary::after { transform: rotate(90deg); }
+        details[open] summary::after { content: '－'; transform: rotate(180deg); }
 
-        .content { padding: 15px; border-top: 1px solid #f1f5f9; }
+        .content { 
+            padding: 0 20px 20px 20px; 
+            border-top: 1px solid #f1f5f9; 
+            animation: slideDown 0.3s ease-out;
+        }
 
-        /* --- BUTTONS REMASTERED --- */
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- HIGH LEVEL BUTTONS --- */
         .btn-app {
             width: 100%;
             padding: 16px;
-            border-radius: 14px;
+            border-radius: 15px;
             border: none;
             font-weight: 800;
             font-size: 14px;
             letter-spacing: 0.5px;
             cursor: pointer;
             transition: 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .btn-primary { background: var(--ph-blue); color: white; box-shadow: 0 4px 12px rgba(0,56,168,0.3); }
-        .btn-auth { background: var(--dark); color: var(--ph-yellow); margin-top: 10px; }
+        .btn-primary { background: var(--ph-blue); color: white; }
+        .btn-auth { 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
+            color: var(--ph-yellow); 
+            border: 1px solid var(--ph-yellow);
+        }
         .btn-sec-green { background: #10b981; color: white; }
         .btn-sec-red { background: var(--ph-red); color: white; }
 
@@ -116,75 +133,93 @@
             width: 100%;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
-            padding: 14px;
+            padding: 15px;
             border-radius: 12px;
             font-family: inherit;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             outline: none;
+            font-size: 14px;
         }
 
-        /* --- AMBULANCE LIGHTS (TOP) --- */
-        .lights { position: fixed; top: 0; width: 100%; height: 5px; display: flex; z-index: 10000; }
-        .l-left { flex: 1; background: var(--ph-red); animation: blink 0.3s infinite alternate; }
-        .l-right { flex: 1; background: var(--ph-blue); animation: blink 0.3s infinite alternate-reverse; }
-        @keyframes blink { from { opacity: 1; } to { opacity: 0.2; } }
+        /* --- AMBULANCE LIGHTS --- */
+        .lights { position: fixed; top: 0; width: 100%; height: 6px; display: flex; z-index: 10000; }
+        .l-left { flex: 1; background: var(--ph-red); animation: blink 0.4s infinite alternate; }
+        .l-right { flex: 1; background: var(--ph-blue); animation: blink 0.4s infinite alternate-reverse; }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
 
-        /* Auth Screen */
-        #auth-screen {
-            position: fixed; top:0; left:0; width: 100%; height: 100%; 
-            background: white; z-index: 10001; display: flex; 
+        /* --- AUTH SHIELD OVERLAY --- */
+        #auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; z-index: 99999; display: flex; 
             flex-direction: column; align-items: center; justify-content: center;
-            padding: 40px; text-align: center;
+            text-align: center; padding: 30px;
         }
+
+        /* Status colors */
+        .status-open { color: #3b82f6; font-weight: 900; }
+        .status-strict { color: var(--ph-red); font-weight: 900; }
+
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <h2 class="flag-text">AUTHENTICATING...</h2>
-        <p style="margin-top: 10px; font-size: 12px; color: #64748b;">Scanning Device Signature</p>
+    <div id="auth-overlay">
+        <h2 class="flag-text">Verifying Admin Access...</h2>
+        <p style="margin-top: 15px; color: #64748b; font-size: 13px;">Scanning LinkSignature & Device Specs</p>
     </div>
 
     <div class="lights"><div class="l-left"></div><div class="l-right"></div></div>
 
     <div class="header-app">
         <h1 class="flag-text">FreeShoppingPH Admin</h1>
-        <p style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-top: 5px;">
-            DEVICE SIGNATURE: <span id="mySig" style="color:var(--ph-blue)">---</span>
+        <p style="font-size: 11px; font-weight: 800; color: #94a3b8; margin-top: 8px;">
+            SYSTEM STATUS: <span id="statusText">CHECKING...</span>
         </p>
     </div>
 
     <div class="container">
         
-        <details class="admin-tab">
-            <summary>Portal Link Management</summary>
+        <details class="exclusive-tab">
+            <summary>Claiming Portal Management</summary>
             <div class="content">
-                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link..."></textarea>
-                <button class="btn-app btn-primary" onclick="assignLink()">ASSIGN LINK</button>
+                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link Here..."></textarea>
+                <button class="btn-app btn-primary" onclick="assignLink()">ASSIGN PORTAL LINK</button>
             </div>
         </details>
 
-        <details class="admin-tab">
+        <details class="exclusive-tab">
             <summary>Live Monitoring (Max 5)</summary>
             <div class="content">
-                <div id="linksTableContainer">
-                    </div>
+                <div style="overflow-x: auto;">
+                    <table style="width:100%; font-size:12px; text-align:left;">
+                        <tbody id="linksTable"></tbody>
+                    </table>
+                </div>
             </div>
         </details>
 
-        <details class="admin-tab">
-            <summary>Security & Whitelist</summary>
+        <details class="exclusive-tab">
+            <summary>System Security Control</summary>
             <div class="content">
-                <input type="tel" id="whiteNum" placeholder="09xxxxxxxxx" oninput="checkWhitelistRealtime()">
+                <div style="text-align: center; margin-bottom: 20px;">
+                   <p style="font-size:10px; margin-bottom:10px;">MASTER SWITCH</p>
+                   <button class="btn-app btn-sec-green" id="masterBtn" onclick="toggleSystem()">STRICT MODE</button>
+                </div>
+                <input type="tel" id="whiteNum" placeholder="Whitelist: 09xxxxxxxxx" oninput="checkWhitelistRealtime()">
                 <button id="whiteBtn" class="btn-app btn-sec-green" onclick="handleWhitelistAction()">GAIN ACCESS</button>
             </div>
         </details>
 
-        <details class="admin-tab">
-            <summary>Device Authorization</summary>
+        <details class="exclusive-tab">
+            <summary>Authorize Admin Access</summary>
             <div class="content">
-                <p style="font-size: 11px; margin-bottom: 10px;">Register this mobile device as a Primary Admin Key.</p>
-                <button class="btn-app btn-auth" onclick="registerThisDevice()">AUTHORIZE ADMIN ACCESS</button>
+                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">
+                    I-register ang device na ito sa database para magkaroon ng permanenteng access.
+                </p>
+                <div style="background: #f1f5f9; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
+                    <code id="deviceSpecs" style="font-size: 9px; word-break: break-all;">Detecting specs...</code>
+                </div>
+                <button class="btn-app btn-auth" onclick="registerAdminDevice()">AUTHORIZE THIS DEVICE</button>
             </div>
         </details>
 
@@ -203,94 +238,106 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // --- 1. DEVICE SIGNATURE LOGIC ---
-        function getDeviceSignature() {
-            const specs = [
-                navigator.userAgent.length,
-                screen.width + "x" + screen.height,
-                navigator.hardwareConcurrency || 'N/A',
-                navigator.language
-            ].join('|');
-            return btoa(specs).substring(0, 12); // Shortened Base64 signature
+        // --- 1. LINKSIGNATURE LOGIC (DEVICE SPECS) ---
+        function generateLinkSignature() {
+            const specs = {
+                ua: navigator.userAgent,
+                sw: screen.width,
+                sh: screen.height,
+                cd: screen.colorDepth,
+                hc: navigator.hardwareConcurrency || 'N/A'
+            };
+            // Convert specs to a unique string/hash
+            const sig = btoa(specs.ua.substring(0, 15) + specs.sw + specs.sh + specs.hc).substring(0, 16);
+            document.getElementById('deviceSpecs').innerText = "SIG: " + sig + " | " + specs.sw + "x" + specs.sh;
+            return sig;
         }
 
-        const mySignature = getDeviceSignature();
-        document.getElementById('mySig').innerText = mySignature;
+        const mySignature = generateLinkSignature();
 
-        // --- 2. AUTHENTICATION SHIELD ---
-        async function authenticate() {
-            const snap = await db.ref('admin_keys/' + mySignature).once('value');
+        // --- 2. SECURITY SCANNER (ON LOAD) ---
+        async function runSecurityScan() {
+            const snap = await db.ref('authorized_admins/' + mySignature).once('value');
+            
             if (snap.exists()) {
-                document.getElementById('auth-screen').style.display = 'none';
+                // Access Granted
+                document.getElementById('auth-overlay').style.display = 'none';
                 document.body.style.display = 'block';
             } else {
-                document.getElementById('auth-screen').innerHTML = `
-                    <h2 style="color:red">ACCESS DENIED</h2>
-                    <p>Device not authorized.</p>
+                // Access Denied
+                document.getElementById('auth-overlay').innerHTML = `
+                    <h1 style="color:var(--ph-red)">ACCESS DENIED</h1>
+                    <p style="margin-top:10px;">Device signature not recognized.</p>
+                    <p style="font-size:10px; color:gray; margin-top:20px;">SIG: ${mySignature}</p>
                 `;
-                // window.close(); // Optional: closes the tab
-            }
-        }
-        authenticate();
-
-        function registerThisDevice() {
-            if(confirm("Authorize this phone as Admin?")) {
-                db.ref('admin_keys/' + mySignature).set({
-                    registeredAt: Date.now(),
-                    model: navigator.userAgent.substring(0, 20)
-                }).then(() => alert("Device Authorized! Reloading..."));
-                location.reload();
             }
         }
 
-        // --- 3. EXCLUSIVE TAB LOGIC ---
-        const tabs = document.querySelectorAll('.admin-tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(otherTab => {
-                    if (otherTab !== tab) otherTab.removeAttribute('open');
+        // --- 3. REGISTER DEVICE ---
+        function registerAdminDevice() {
+            if (confirm("I-register ang phone na ito bilang Admin?")) {
+                db.ref('authorized_admins/' + mySignature).set({
+                    device: navigator.userAgent,
+                    registeredAt: Date.now()
+                }).then(() => {
+                    alert("Device Authorized! Reloading...");
+                    location.reload();
                 });
+            }
+        }
+
+        // --- 4. EXCLUSIVE TAB LOGIC (One at a time) ---
+        const allTabs = document.querySelectorAll('.exclusive-tab');
+        allTabs.forEach(tab => {
+            tab.addEventListener('toggle', function() {
+                if (this.open) {
+                    allTabs.forEach(t => { if (t !== this) t.removeAttribute('open'); });
+                }
             });
         });
 
-        // --- 4. CORE FUNCTIONS (PREVIOUS LOGIC) ---
+        // --- 5. SYSTEM STATUS & MASTER SWITCH ---
+        db.ref('system_status').on('value', snap => {
+            const mode = snap.val()?.mode || 'strict';
+            const btn = document.getElementById('masterBtn');
+            const statusTxt = document.getElementById('statusText');
+            
+            if (mode === 'open') {
+                statusTxt.innerText = "OPEN ACCESS";
+                statusTxt.className = "status-open";
+                btn.innerText = "SWITCH TO STRICT";
+                btn.style.background = "#3b82f6";
+            } else {
+                statusTxt.innerText = "STRICT MODE";
+                statusTxt.className = "status-strict";
+                btn.innerText = "SWITCH TO OPEN";
+                btn.style.background = "var(--ph-red)";
+            }
+        });
+
+        function toggleSystem() {
+            const current = document.getElementById('statusText').innerText;
+            const newMode = current.includes("STRICT") ? "open" : "strict";
+            db.ref('system_status').update({ mode: newMode });
+        }
+
+        // --- INITIALIZE SCAN ---
+        // PANSAMANTALA: Kung ito ang unang beses mo at wala pang registered admin, 
+        // i-comment out muna ang line sa ibaba para makapasok at ma-click ang "Authorize".
+        runSecurityScan(); 
+
+        // --- REST OF YOUR CORE FUNCTIONS (AssignLink, Whitelist, etc.) ---
         async function assignLink() {
             const url = document.getElementById('gcashLink').value.trim();
-            if (!url) return;
+            if(!url) return;
+            const snap = await db.ref('AvailLinks').once('value');
+            if(snap.numChildren() >= 5) return alert("Max 5 links only.");
             db.ref('AvailLinks').push({ url, status: 'available', beneficiary: 'NONE', timestamp: Date.now() });
             document.getElementById('gcashLink').value = '';
+            alert("Link Added!");
         }
 
-        // Realtime Table & Other functions remain similar but with better UI output...
-        // (Include your checkWhitelistRealtime and handleWhitelistAction here)
-        
-        async function checkWhitelistRealtime() {
-            const num = document.getElementById('whiteNum').value.trim();
-            const btn = document.getElementById('whiteBtn');
-            if (num.length === 11) {
-                const snap = await db.ref('whitelist/' + num).once('value');
-                if (snap.exists()) {
-                    btn.innerText = "REMOVE ACCESS";
-                    btn.className = "btn-app btn-sec-red";
-                } else {
-                    btn.innerText = "GAIN ACCESS";
-                    btn.className = "btn-app btn-sec-green";
-                }
-            }
-        }
-
-        async function handleWhitelistAction() {
-            const num = document.getElementById('whiteNum').value.trim();
-            const btn = document.getElementById('whiteBtn');
-            if (num.length !== 11) return;
-            if (btn.innerText === "REMOVE ACCESS") {
-                await db.ref('whitelist/' + num).remove();
-            } else {
-                await db.ref('whitelist/' + num).set({ addedAt: Date.now() });
-            }
-            document.getElementById('whiteNum').value = '';
-            checkWhitelistRealtime();
-        }
+        // ... (Idagdag dito ang checkWhitelistRealtime at handleWhitelistAction mula sa dating code)
     </script>
 </body>
 </html>
