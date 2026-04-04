@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS Admin | Pro Control</title>
+    <title>FS Admin | Persistence Mode</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -15,38 +15,27 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Public Sans', sans-serif; background: #f1f5f9; min-height: 100vh; color: var(--dark); }
 
-        body { 
-            font-family: 'Public Sans', sans-serif; background: #f1f5f9; min-height: 100vh; color: var(--dark);
-        }
-
-        /* --- LOGIN OVERLAY --- */
+        /* --- PERSISTENT LOGIN OVERLAY --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #f1f5f9; z-index: 10000; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; padding: 30px; text-align: center;
+            align-items: center; justify-content: center; padding: 30px;
         }
 
-        /* --- SUBTLE TITLE LIGHTS (AMBULANCE) --- */
+        /* --- HEADER & AMBULANCE LIGHTS --- */
         .header-app {
             padding: 45px 20px 25px; text-align: center; background: white;
             border-bottom: 4px solid var(--ph-yellow); position: relative;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 0 0 25px 25px;
         }
-
-        .title-light {
-            position: absolute; top: 0; left: 0; width: 100%; height: 5px; display: flex;
-        }
+        .title-light { position: absolute; top: 0; left: 0; width: 100%; height: 5px; display: flex; }
         .light-unit { flex: 1; height: 100%; opacity: 0; transition: 0.3s; }
-        
-        /* Strict Mode Active */
         .mode-strict .l-red { background: var(--ph-red); animation: flash 0.5s infinite alternate; opacity: 1; }
         .mode-strict .l-blue { background: var(--ph-blue); animation: flash 0.5s infinite alternate-reverse; opacity: 1; }
-        
-        /* Open Mode Active */
         .mode-open .l-yellow { background: var(--ph-yellow); opacity: 1; }
         .mode-open .l-green { background: var(--ph-green); opacity: 1; }
-
         @keyframes flash { from { opacity: 1; } to { opacity: 0.2; } }
 
         .flag-text {
@@ -55,63 +44,51 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
         }
 
-        /* --- SLIDE SWITCH --- */
-        .switch-box { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-        .toggle-ui {
-            position: relative; width: 70px; height: 35px;
-            appearance: none; background: #cbd5e1; border-radius: 20px;
-            outline: none; cursor: pointer; transition: 0.4s;
-        }
-        .toggle-ui:checked { background: var(--ph-red); }
-        .toggle-ui::before {
-            content: ''; position: absolute; width: 27px; height: 27px;
-            border-radius: 50%; top: 4px; left: 4px; background: white;
-            transition: 0.4s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .toggle-ui:checked::before { transform: translateX(35px); }
+        /* --- TOGGLE SWITCH DESIGN --- */
+        .toggle-container { display: flex; align-items: center; gap: 15px; background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--ph-red); }
+        input:checked + .slider:before { transform: translateX(26px); }
 
-        /* --- DASHBOARD UI --- */
+        /* --- SYSTEM ACCESS POV --- */
+        .access-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .access-row input { flex: 1; margin-bottom: 0; padding: 12px; font-size: 16px; font-weight: 800; text-align: center; letter-spacing: 2px; }
+
+        /* --- DASHBOARD & MONITORING --- */
         #admin-dashboard { display: none; padding: 15px; }
-
         details { background: white; border-radius: 20px; margin-bottom: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
         summary { padding: 20px; font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; color: #475569; }
-        summary::after { content: '＋'; color: var(--ph-blue); }
-        details[open] summary::after { content: '－'; }
+        .content { padding: 0 15px 15px 15px; border-top: 1px solid #f8fafc; padding-top: 15px; }
 
-        .content { padding: 0 20px 20px 20px; border-top: 1px solid #f8fafc; padding-top: 15px; }
-
-        .btn-app {
-            width: 100%; padding: 16px; border-radius: 15px; border: none;
-            font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; margin-bottom: 8px;
-        }
+        .btn-app { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; margin-bottom: 8px; transition: 0.2s; }
+        .btn-blue { background: var(--ph-blue); color: white; }
         .btn-green { background: var(--ph-green); color: white; }
         .btn-red { background: var(--ph-red); color: white; }
-        .btn-blue { background: var(--ph-blue); color: white; }
-        .btn-gray { background: #64748b; color: white; }
-        .btn-app:active { transform: scale(0.97); }
+        
+        /* --- MONITORING TABLE --- */
+        .log-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; font-size: 12px; }
+        .status-active { color: var(--ph-green); font-weight: 900; }
+        .status-initiated { color: #3b82f6; font-weight: 900; }
+        .action-text { font-size: 10px; font-weight: 900; cursor: pointer; margin-left: 10px; text-decoration: underline; }
 
-        input, textarea {
-            width: 100%; background: #fff; border: 2px solid #e2e8f0;
-            padding: 15px; border-radius: 12px; margin-bottom: 12px; outline: none; font-family: inherit;
-        }
+        input { width: 100%; border: 2px solid #e2e8f0; padding: 15px; border-radius: 12px; outline: none; }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
-        <h1 class="flag-text" style="margin-bottom: 10px;">Admin Access</h1>
-        <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">Enter Database Master Password</p>
-        <input type="password" id="passInput" placeholder="••••••••" style="max-width: 280px; text-align: center; border: 2px solid var(--ph-blue);">
-        <button class="btn-app btn-blue" style="max-width: 280px;" onclick="verifyAccess()">UNLOCK SYSTEM</button>
-        <p id="errMsg" style="color: red; font-size: 11px; font-weight: 800; margin-top: 10px;"></p>
+        <h1 class="flag-text">Admin Lock</h1>
+        <input type="password" id="passInput" placeholder="Password" style="max-width: 250px; text-align: center; margin: 15px 0;">
+        <button class="btn-app btn-blue" style="max-width: 250px;" onclick="verifyAccess()">UNLOCK</button>
     </div>
 
     <div class="header-app" id="headerBrand">
         <div class="title-light">
-            <div class="light-unit l-red"></div>
-            <div class="light-unit l-blue"></div>
-            <div class="light-unit l-yellow"></div>
-            <div class="light-unit l-green"></div>
+            <div class="light-unit l-red"></div><div class="light-unit l-blue"></div>
+            <div class="light-unit l-yellow"></div><div class="light-unit l-green"></div>
         </div>
         <h1 class="flag-text">FreeShoppingPH Admin</h1>
         <p id="modeStatus" style="font-size: 10px; font-weight: 900; margin-top: 5px;"></p>
@@ -122,47 +99,46 @@
         <details class="exclusive-tab">
             <summary>Claiming Portal Management</summary>
             <div class="content">
-                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link Here..."></textarea>
+                <input type="text" id="gcashLink" placeholder="Paste GCash Link...">
                 <button class="btn-app btn-blue" onclick="assignLink()">ASSIGN PORTAL LINK</button>
+            </div>
+        </details>
+
+        <details class="exclusive-tab" open>
+            <summary>System Access Control</summary>
+            <div class="content">
+                <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="masterSwitch" onchange="updateSystemMode()">
+                        <span class="slider"></span>
+                    </label>
+                    <div style="flex:1">
+                        <p style="font-size: 10px; font-weight: 900; color: #64748b;">STRICT MODE</p>
+                        <p id="toggleLabel" style="font-size: 12px; font-weight: 900;">OFF</p>
+                    </div>
+                </div>
+
+                <div class="access-row">
+                    <input type="tel" id="targetPhone" maxlength="11" placeholder="09XXXXXXXXX" oninput="autoScanPhone(this.value)">
+                </div>
+                
+                <div id="actionArea">
+                    <button class="btn-app btn-blue" style="opacity: 0.5;">WAITING FOR SCAN...</button>
+                </div>
+                
+                <button class="btn-app btn-red" style="margin-top:5px;" onclick="handleDbAccess('blacklist')">RESTRICTED</button>
             </div>
         </details>
 
         <details class="exclusive-tab">
             <summary>Live Monitoring</summary>
             <div class="content" id="liveLogs">
-                <p style="text-align:center; font-size:11px; color:gray;">Fetching database records...</p>
-            </div>
-        </details>
-
-        <details class="exclusive-tab">
-            <summary>System Access Control</summary>
-            <div class="content">
-                <div class="switch-box">
-                    <p style="font-size: 10px; font-weight: 900; color: #64748b; margin-bottom: 5px;">STRICT MODE SWITCH</p>
-                    <input type="checkbox" id="masterSwitch" class="toggle-ui" onchange="updateSystemMode()">
                 </div>
-                
-                <input type="tel" id="targetPhone" placeholder="09xxxxxxxxx">
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn-app btn-green" onclick="handleDbAccess('whitelist')">GAIN ACCESS</button>
-                    <button class="btn-app btn-red" onclick="handleDbAccess('blacklist')">RESTRICTED</button>
-                </div>
-                <button class="btn-app btn-gray" onclick="clearUserAccess()">REMOVE ACCESS</button>
-            </div>
-        </details>
-
-        <details class="exclusive-tab">
-            <summary>Admin Master Settings</summary>
-            <div class="content">
-                <input type="text" id="newPass" placeholder="Set New Master Password">
-                <button class="btn-app btn-blue" style="background: var(--dark);" onclick="changeMasterPass()">UPDATE PASSWORD</button>
-            </div>
         </details>
 
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
             authDomain: "freeshoppingph-3bade.firebaseapp.com",
@@ -175,90 +151,108 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // --- 1. PASSWORD VERIFICATION ---
-        async function verifyAccess() {
-            const input = document.getElementById('passInput').value.trim();
-            const err = document.getElementById('errMsg');
-            
-            try {
-                const snap = await db.ref('admin_settings/password').once('value');
-                const masterPass = snap.val() || "1234"; // Default password is 1234
+        // --- SESSION PERSISTENCE ---
+        window.onload = () => {
+            if(localStorage.getItem("admin_auth") === "granted") {
+                showDashboard();
+            }
+        };
 
-                if (input === masterPass) {
-                    document.getElementById('auth-overlay').style.display = 'none';
-                    document.getElementById('admin-dashboard').style.display = 'block';
+        async function verifyAccess() {
+            const input = document.getElementById('passInput').value;
+            const snap = await db.ref('admin_settings/password').once('value');
+            if (input === (snap.val() || "1234")) {
+                localStorage.setItem("admin_auth", "granted");
+                showDashboard();
+            } else { alert("Mali!"); }
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+        }
+
+        // --- AUTO SCAN LOGIC ---
+        async function autoScanPhone(val) {
+            if(val.length === 11) {
+                const area = document.getElementById('actionArea');
+                area.innerHTML = '<button class="btn-app btn-blue">SCANNING...</button>';
+                
+                const snap = await db.ref('whitelist/' + val).once('value');
+                if(snap.exists()) {
+                    area.innerHTML = `<button class="btn-app btn-red" onclick="removeUser('${val}')">REMOVE ACCESS</button>`;
                 } else {
-                    err.innerText = "WRONG PASSWORD. TRY AGAIN.";
+                    area.innerHTML = `<button class="btn-app btn-green" onclick="handleDbAccess('whitelist')">GAIN ACCESS</button>`;
                 }
-            } catch (e) {
-                err.innerText = "Connection Error!";
             }
         }
 
-        // --- 2. MASTER SWITCH & LIGHTS ---
+        // --- MONITORING (ROMAN NUMERALS) ---
+        function toRoman(num) {
+            const map = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
+            let roman = '';
+            for (let i in map) { while (num >= map[i]) { roman += i; num -= map[i]; } }
+            return roman;
+        }
+
+        db.ref('AvailLinks').on('value', snap => {
+            const container = document.getElementById('liveLogs');
+            container.innerHTML = '';
+            let count = 1;
+            snap.forEach(child => {
+                const d = child.val();
+                const statusClass = d.status === 'available' ? 'status-active' : 'status-initiated';
+                const statusText = d.status === 'available' ? 'ACTIVE' : 'INITIATED';
+                
+                container.innerHTML += `
+                    <div class="log-card">
+                        <b>GCLink# ${toRoman(count)}</b> | <span class="${statusClass}">${statusText}</span><br>
+                        Beneficiary: <b>${d.beneficiary || 'Pending...'}</b>
+                        <div style="margin-top:8px;">
+                            <span class="action-text" style="color:var(--ph-yellow)" onclick="reuseLink('${child.key}')">REUSE</span>
+                            <span class="action-text" style="color:var(--ph-red)" onclick="removeLink('${child.key}')">REMOVE</span>
+                        </div>
+                    </div>
+                `;
+                count++;
+            });
+        });
+
+        // --- CORE DATABASE FUNCTIONS ---
+        function updateSystemMode() {
+            const isChecked = document.getElementById('masterSwitch').checked;
+            db.ref('system_status').update({ mode: isChecked ? 'strict' : 'open' });
+            document.getElementById('toggleLabel').innerText = isChecked ? "ON" : "OFF";
+        }
+
         db.ref('system_status').on('value', snap => {
             const mode = snap.val()?.mode || 'strict';
             const isStrict = mode === 'strict';
             document.getElementById('masterSwitch').checked = isStrict;
-            
-            const header = document.getElementById('headerBrand');
-            const statusLabel = document.getElementById('modeStatus');
-            
-            if(isStrict) {
-                header.className = "header-app mode-strict";
-                statusLabel.innerText = "STRICT MODE ACTIVE";
-                statusLabel.style.color = "var(--ph-red)";
-            } else {
-                header.className = "header-app mode-open";
-                statusLabel.innerText = "OPEN ACCESS MODE";
-                statusLabel.style.color = "var(--ph-green)";
-            }
+            document.getElementById('toggleLabel').innerText = isStrict ? "ON" : "OFF";
+            document.getElementById('headerBrand').className = "header-app mode-" + mode;
+            document.getElementById('modeStatus').innerText = isStrict ? "STRICT MODE ACTIVE" : "OPEN ACCESS";
         });
 
-        function updateSystemMode() {
-            const isChecked = document.getElementById('masterSwitch').checked;
-            db.ref('system_status').update({ mode: isChecked ? 'strict' : 'open' });
-        }
-
-        // --- 3. ACCESS CONTROL (WHITELIST/BLACKLIST) ---
         function handleDbAccess(node) {
-            const num = document.getElementById('targetPhone').value.trim();
-            if(num.length < 11) return alert("Invalid Phone Number");
-            db.ref(node + '/' + num).set({ dateAdded: Date.now() });
-            alert(num + " added to " + node);
-            document.getElementById('targetPhone').value = '';
+            const num = document.getElementById('targetPhone').value;
+            db.ref(node + '/' + num).set({ added: Date.now() });
+            autoScanPhone(num);
         }
 
-        function clearUserAccess() {
-            const num = document.getElementById('targetPhone').value.trim();
-            if(!num) return;
+        function removeUser(num) {
             db.ref('whitelist/' + num).remove();
             db.ref('blacklist/' + num).remove();
-            alert("Revoked access for " + num);
+            autoScanPhone(num);
         }
 
-        // --- 4. PORTAL & PASSWORD UPDATE ---
+        function reuseLink(key) { db.ref('AvailLinks/' + key).update({ status: 'available', beneficiary: 'NONE' }); }
+        function removeLink(key) { db.ref('AvailLinks/' + key).remove(); }
         function assignLink() {
-            const url = document.getElementById('gcashLink').value.trim();
-            if(!url) return;
-            db.ref('AvailLinks').push({ url, status: 'available', time: Date.now() });
+            const url = document.getElementById('gcashLink').value;
+            db.ref('AvailLinks').push({ url, status: 'available', beneficiary: 'NONE' });
             document.getElementById('gcashLink').value = '';
-            alert("Portal Link Updated!");
         }
-
-        function changeMasterPass() {
-            const val = document.getElementById('newPass').value.trim();
-            if(!val) return;
-            db.ref('admin_settings').update({ password: val }).then(() => alert("Master Password Updated!"));
-        }
-
-        // --- UTILS ---
-        const tabs = document.querySelectorAll('.exclusive-tab');
-        tabs.forEach(t => {
-            t.addEventListener('toggle', () => {
-                if(t.open) tabs.forEach(other => { if(other !== t) other.removeAttribute('open'); });
-            });
-        });
     </script>
 </body>
 </html>
