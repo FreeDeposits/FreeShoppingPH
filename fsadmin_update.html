@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Center | FreeShopping</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/config.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --shopee-orange: #ee4d2d; 
+            --shopee-bg: #f5f5f5; 
+            --success: #26aa99; 
+            --danger: #ff4742; 
+            --text-main: #222;
+            --text-sub: #757575;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background: var(--shopee-bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 10px;
+            padding-bottom: 50px;
+        }
+
+        header { 
+            background: #fff; 
+            padding: 15px; 
+            margin: -10px -10px 20px -10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-circle {
+            background: var(--shopee-orange);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        h1 { font-size: 16px; margin: 0; color: var(--shopee-orange); text-transform: uppercase; }
+        .sub-deck { font-size: 11px; color: var(--text-sub); }
+
+        .op-card {
+            background: #fff; 
+            border-radius: 4px; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+
+        .card-label { 
+            font-size: 13px; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            color: var(--text-main);
+            border-left: 4px solid var(--shopee-orange);
+            padding-left: 8px;
+        }
+        
+        textarea, input {
+            width: 100%; 
+            background: #fdfdfd; 
+            border: 1px solid #ddd;
+            color: #333; 
+            padding: 12px; 
+            border-radius: 2px; 
+            outline: none; 
+            font-size: 13px; 
+            margin-bottom: 10px;
+        }
+
+        textarea:focus, input:focus { border-color: var(--shopee-orange); }
+
+        .btn-action {
+            width: 100%; 
+            background: var(--shopee-orange); 
+            color: #fff; 
+            border: none;
+            padding: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            border-radius: 2px;
+            text-transform: uppercase; 
+            transition: 0.2s;
+        }
+        .btn-action:active { opacity: 0.8; }
+
+        .btn-ban { background: #555; color: #fff; margin-top: 5px; }
+
+        .monitor-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .monitor-table th { text-align: left; padding: 10px; border-bottom: 1px solid #eee; color: var(--text-sub); font-weight: 400; }
+        .monitor-table td { padding: 12px 10px; border-bottom: 1px solid #f8f8f8; }
+
+        .status-tag { padding: 3px 6px; border-radius: 2px; font-weight: 600; font-size: 10px; }
+        .st-avail { background: rgba(38, 170, 153, 0.1); color: var(--success); }
+        .st-pend { background: #fff8e1; color: #ffb300; }
+        .st-claim { background: #fbe9e7; color: var(--shopee-orange); }
+
+        .ghost-id { color: #333; font-weight: 600; }
+        .btn-mini { 
+            background: #fff; 
+            border: 1px solid #ddd; 
+            cursor: pointer; 
+            font-size: 11px; 
+            padding: 4px 8px; 
+            border-radius: 2px;
+            margin-right: 2px;
+        }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: white; padding: 15px; border-radius: 4px; text-align: center; }
+        .stat-val { font-size: 18px; font-weight: 800; color: var(--shopee-orange); }
+        .stat-lbl { font-size: 10px; color: var(--text-sub); text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-circle">S</div>
+        <div>
+            <h1>Merchant Center</h1>
+            <div class="sub-deck">FREE SHOPPING PHILIPPINES // ADMIN</div>
+        </div>
+    </header>
+
+    <div class="stat-grid">
+        <div class="stat-box">
+            <div class="stat-val" id="count-active">0</div>
+            <div class="stat-lbl">Active Users</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" id="count-links">0</div>
+            <div class="stat-lbl">Ready Links</div>
+        </div>
+    </div>
+
+    <div class="op-card">
+        <div class="card-label">UPLOAD MERCHANT VOUCHERS</div>
+        <textarea id="links" rows="3" placeholder="Paste Shopee/Lazada links here (One per line)..."></textarea>
+        <button class="btn-action" onclick="deploy()">Add to Inventory</button>
+    </div>
+
+    <div class="op-card">
+        <div class="card-label">LIVE CUSTOMER ACTIVITY</div>
+        <div style="overflow-x:auto;">
+            <table class="monitor-table">
+                <thead>
+                    <tr>
+                        <th>CUSTOMER</th>
+                        <th>WALLET</th>
+                        <th>CLICKS</th>
+                        <th>UPDATED</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="ghostData"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="op-card">
+        <div class="card-label">VOUCHER INVENTORY</div>
+        <div style="overflow-x:auto;">
+            <table class="monitor-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>STATUS</th>
+                        <th>HOLDER</th>
+                        <th>MANAGE</th>
+                    </tr>
+                </thead>
+                <tbody id="linkData"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="op-card" style="border-top: 3px solid var(--danger);">
+        <div class="card-label" style="color: var(--danger);">BLOCK LIST (SUSPICIOUS USERS)</div>
+        <input type="text" id="banTarget" placeholder="Enter phone number to block...">
+        <button class="btn-action btn-ban" onclick="banGhost()">Block User</button>
+        
+        <div style="margin-top: 15px;">
+            <table class="monitor-table">
+                <tbody id="banList"></tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function deploy() {
+        const val = document.getElementById('links').value.trim();
+        if(!val) return;
+        val.split('\n').forEach(url => {
+            if(url) db.ref('links').push({ url: url.trim(), status: 'available', user: 'NONE' });
+        });
+        document.getElementById('links').value = '';
+    }
+
+    function reuseContract(key) {
+        if(confirm("Reset this link for a new user?")) {
+            db.ref('links/' + key).update({ status: 'available', user: 'NONE' });
+        }
+    }
+
+    function banGhost() {
+        const target = document.getElementById('banTarget').value.trim();
+        if(!target) return;
+        db.ref('banned_ghosts/' + target).set({ timestamp: Date.now() });
+        document.getElementById('banTarget').value = '';
+    }
+
+    function liftBan(id) {
+        if(confirm("Unblock customer " + id + "?")) db.ref('banned_ghosts/' + id).remove();
+    }
+
+    function purgeGhost(phone) {
+        if(confirm("Delete session data for " + phone + "?")) {
+            db.ref('user_sessions/' + phone).remove();
+        }
+    }
+
+    // --- DATA LISTENERS ---
+
+    db.ref('links').on('value', snap => {
+        const tbody = document.getElementById('linkData');
+        const countEl = document.getElementById('count-links');
+        let availCount = 0;
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            const d = c.val();
+            if(d.status === 'available') availCount++;
+            const sClass = d.status == 'available' ? 'st-avail' : (d.status == 'pending' ? 'st-pend' : 'st-claim');
+            tbody.innerHTML += `<tr>
+                <td>#${c.key.substr(-4)}</td>
+                <td><span class="status-tag ${sClass}">${d.status.toUpperCase()}</span></td>
+                <td class="ghost-id">${d.user}</td>
+                <td>
+                    <button class="btn-mini" onclick="reuseContract('${c.key}')" title="Reset">🔄</button>
+                    <button class="btn-mini" onclick="db.ref('links/${c.key}').remove()" style="color:var(--danger)">🗑️</button>
+                </td>
+            </tr>`;
+        });
+        countEl.innerText = availCount;
+    });
+
+    db.ref('user_sessions').on('value', snap => {
+        const tbody = document.getElementById('ghostData');
+        const countEl = document.getElementById('count-active');
+        let activeCount = 0;
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            const d = c.val();
+            activeCount++;
+            const lastSeen = d.lastUpdate ? new Date(d.lastUpdate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+            tbody.innerHTML += `<tr>
+                <td class="ghost-id">${d.phone}</td>
+                <td style="color:var(--success); font-weight:bold;">₱${d.balance}</td>
+                <td>${d.clicks || 0}/6</td>
+                <td style="color:#888;">${lastSeen}</td>
+                <td>
+                    <button class="btn-mini" onclick="document.getElementById('banTarget').value='${d.phone}'">🚫</button>
+                    <button class="btn-mini" onclick="purgeGhost('${d.phone}')">❌</button>
+                </td>
+            </tr>`;
+        });
+        countEl.innerText = activeCount;
+    });
+
+    db.ref('banned_ghosts').on('value', snap => {
+        const tbody = document.getElementById('banList');
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            tbody.innerHTML += `<tr>
+                <td class="ghost-id" style="color:var(--danger)">Blocked: ${c.key}</td>
+                <td style="text-align:right;"><button class="btn-mini" onclick="liftBan('${c.key}')">Restore</button></td>
+            </tr>`;
+        });
+    });
+</script>
+</body>
+</html>
