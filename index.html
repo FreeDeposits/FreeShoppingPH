@@ -41,8 +41,9 @@
     </div>
 
     <script>document.write('<script src="/js/config.js?v=' + Date.now() + '"><\/script>');</script>
-<script>
-    // INITIALIZE FIREBASE (Gamit ang config mo)
+    
+    <script>
+        // CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
     authDomain: "freeshoppingph-3bade.firebaseapp.com",
@@ -53,67 +54,106 @@ const firebaseConfig = {
     appId: "1:1028308831969:web:96e224e75d69ba74332924"
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// 1. GENERATE DEVICE SIGNATURE (Fingerprint)
+function getDeviceSignature() {
+    const specs = [
+        navigator.userAgent,
+        screen.height,
+        screen.width,
+        navigator.hardwareConcurrency,
+        navigator.language
+    ].join('|');
+    // Simple hash function para maging "Signature" string
+    let hash = 0;
+    for (let i = 0; i < specs.length; i++) {
+        hash = ((hash << 5) - hash) + specs.charCodeAt(i);
+        hash |= 0;
+    }
+    return "SIG-" + Math.abs(hash);
+}
+
+const deviceSig = getDeviceSignature();
+
+// 2. ANDROID INTENT / BROWSER CHECK
+function checkEnvironment() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
+    
+    if (isFacebook && /Android/i.test(ua)) {
+        // Pilitin lumabas sa Messenger/FB App
+        const currentUrl = window.location.href.replace(/https?:\/\//, "");
+        window.location.href = "intent://" + currentUrl + "#Intent;scheme=https;package=com.android.chrome;end";
+    }
+
+    // Mobile Only Logic
+    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        document.body.innerHTML = "<div style='padding:50px; text-align:center; color:red; font-weight:bold;'>MOBILE DEVICE ONLY: Please use your smartphone to access this portal.</div>";
+    }
+}
+
+window.onload = checkEnvironment;
+
+// 3. LOGIN & RULES LOGIC
 async function handleLogin() {
     const phoneInput = document.getElementById('phoneInput').value.trim();
     const btn = document.getElementById('loginBtn');
 
-    // Basic Validation
-    if (phoneInput.length !== 11 || !phoneInput.startsWith("09")) {
-        alert("Please enter a valid 11-digit GCash number.");
-        return;
-    }
+    if (phoneInput.length !== 11) return alert("Enter 11-digit number.");
 
     btn.disabled = true;
     btn.innerText = "VERIFYING...";
 
     try {
-        // 1. Kuhanin ang System Mode mula sa Admin (Open o Strict)
-        const modeSnap = await db.ref('system_status/mode').once('value');
-        const mode = modeSnap.val() || 'strict';
+        // Check if device is locally blacklisted
+        if (localStorage.getItem('sys_restricted') === 'true') {
+            alert("This beneficiary was already claimed.");
+            btn.disabled = false; return;
+        }
 
-        // 2. Check muna kung Blacklisted (Kahit anong mode, bawal ang blacklisted)
-        const blackSnap = await db.ref('blacklist/' + phoneInput).once('value');
-        if (blackSnap.exists()) {
-            alert("This number has already claimed the assistance. Duplicate entries are not allowed.");
+        // Check Database for Phone OR Device Signature sa Blacklist
+        const blackByPhone = await db.ref('blacklist/' + phoneInput).once('value');
+        const blackBySig = await db.ref('blacklisted_devices/' + deviceSig).once('value');
+
+        if (blackByPhone.exists() || blackBySig.exists()) {
+            // Re-enforce local storage if database found them
+            localStorage.setItem('sys_restricted', 'true');
+            alert("This beneficiary was already claimed.");
             btn.disabled = false;
-            btn.innerText = "PROCEED";
             return;
         }
 
+        // Check System Mode (Open/Strict)
+        const modeSnap = await db.ref('system_status/mode').once('value');
+        const mode = modeSnap.val() || 'strict';
+
         if (mode === 'open') {
-            // OPEN MODE: Lahat ng hindi blacklisted, pasok!
-            saveAndRedirect(phoneInput);
+            proceed(phoneInput);
         } else {
-            // STRICT MODE: Check kung nasa Whitelist
+            // Strict Mode: Only Whitelisted
             const whiteSnap = await db.ref('whitelist/' + phoneInput).once('value');
             if (whiteSnap.exists()) {
-                saveAndRedirect(phoneInput);
+                proceed(phoneInput);
             } else {
-                alert("System Notice: Access is currently limited to selected beneficiaries. Please try again later.");
+                alert("System Notice: Access is currently limited. Try again later.");
                 btn.disabled = false;
-                btn.innerText = "PROCEED";
             }
         }
 
-    } catch (error) {
-        console.error(error);
-        alert("Connection Error. Please check your internet.");
+    } catch (e) {
+        alert("Verification failed. Check connection.");
         btn.disabled = false;
     }
 }
 
-function saveAndRedirect(phone) {
-    // I-save sa SessionStorage para sa main.html mapping
+function proceed(phone) {
     sessionStorage.setItem('user_phone', phone);
-    
-    // Redirect sa main.html
+    sessionStorage.setItem('user_sig', deviceSig);
     window.location.href = "main.html";
 }
+    
 
             // 4. Normal Processing (If NOT in Messenger or already escaped)
             btn.disabled = true;
