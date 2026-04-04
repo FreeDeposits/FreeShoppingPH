@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS Admin | Persistence Mode</title>
+    <title>FS Admin | Compact Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -15,74 +15,71 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Public Sans', sans-serif; background: #f1f5f9; min-height: 100vh; color: var(--dark); }
+        body { font-family: 'Public Sans', sans-serif; background: #f1f5f9; color: var(--dark); }
 
-        /* --- PERSISTENT LOGIN OVERLAY --- */
+        /* --- PERSISTENT AUTH --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #f1f5f9; z-index: 10000; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; padding: 30px;
+            align-items: center; justify-content: center; padding: 20px;
         }
 
-        /* --- HEADER & AMBULANCE LIGHTS --- */
+        /* --- COMPACT HEADER --- */
         .header-app {
-            padding: 45px 20px 25px; text-align: center; background: white;
-            border-bottom: 4px solid var(--ph-yellow); position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 0 0 25px 25px;
+            padding: 35px 15px 15px; text-align: center; background: white;
+            border-bottom: 3px solid var(--ph-yellow); position: relative;
+            border-radius: 0 0 20px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .title-light { position: absolute; top: 0; left: 0; width: 100%; height: 5px; display: flex; }
+        .title-light { position: absolute; top: 0; left: 0; width: 100%; height: 4px; display: flex; }
         .light-unit { flex: 1; height: 100%; opacity: 0; transition: 0.3s; }
-        .mode-strict .l-red { background: var(--ph-red); animation: flash 0.5s infinite alternate; opacity: 1; }
-        .mode-strict .l-blue { background: var(--ph-blue); animation: flash 0.5s infinite alternate-reverse; opacity: 1; }
+        .mode-strict .l-red { background: var(--ph-red); animation: flash 0.4s infinite alternate; opacity: 1; }
+        .mode-strict .l-blue { background: var(--ph-blue); animation: flash 0.4s infinite alternate-reverse; opacity: 1; }
         .mode-open .l-yellow { background: var(--ph-yellow); opacity: 1; }
         .mode-open .l-green { background: var(--ph-green); opacity: 1; }
         @keyframes flash { from { opacity: 1; } to { opacity: 0.2; } }
 
         .flag-text {
-            font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 900;
+            font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 900;
             background: linear-gradient(to bottom, var(--ph-blue) 45%, #fff 45%, var(--ph-yellow) 50%, var(--ph-red) 55%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
         }
 
-        /* --- TOGGLE SWITCH DESIGN --- */
-        .toggle-container { display: flex; align-items: center; gap: 15px; background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--ph-red); }
-        input:checked + .slider:before { transform: translateX(26px); }
+        /* --- DASHBOARD --- */
+        #admin-dashboard { display: none; padding: 10px; }
+        details { background: white; border-radius: 15px; margin-bottom: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
+        summary { padding: 15px; font-weight: 800; font-size: 12px; display: flex; justify-content: space-between; cursor: pointer; color: #475569; }
 
-        /* --- SYSTEM ACCESS POV --- */
-        .access-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .access-row input { flex: 1; margin-bottom: 0; padding: 12px; font-size: 16px; font-weight: 800; text-align: center; letter-spacing: 2px; }
-
-        /* --- DASHBOARD & MONITORING --- */
-        #admin-dashboard { display: none; padding: 15px; }
-        details { background: white; border-radius: 20px; margin-bottom: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
-        summary { padding: 20px; font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; color: #475569; }
-        .content { padding: 0 15px 15px 15px; border-top: 1px solid #f8fafc; padding-top: 15px; }
-
-        .btn-app { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; margin-bottom: 8px; transition: 0.2s; }
-        .btn-blue { background: var(--ph-blue); color: white; }
-        .btn-green { background: var(--ph-green); color: white; }
-        .btn-red { background: var(--ph-red); color: white; }
+        /* --- SYSTEM ACCESS ROW (COMPACT) --- */
+        .control-panel { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 12px; margin-bottom: 10px; }
         
-        /* --- MONITORING TABLE --- */
-        .log-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; font-size: 12px; }
+        /* Modern Toggle Switch */
+        .switch { position: relative; width: 50px; height: 26px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--ph-red); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .mini-input { flex: 1; border: 2px solid #e2e8f0; padding: 10px; border-radius: 8px; font-size: 16px; font-weight: 900; text-align: center; outline: none; }
+
+        /* --- MONITORING CARDS --- */
+        .log-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
         .status-active { color: var(--ph-green); font-weight: 900; }
         .status-initiated { color: #3b82f6; font-weight: 900; }
-        .action-text { font-size: 10px; font-weight: 900; cursor: pointer; margin-left: 10px; text-decoration: underline; }
+        .action-link { font-weight: 900; cursor: pointer; text-decoration: underline; margin-left: 5px; text-transform: uppercase; font-size: 9px; }
 
-        input { width: 100%; border: 2px solid #e2e8f0; padding: 15px; border-radius: 12px; outline: none; }
+        .btn-main { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-blue { background: var(--ph-blue); }
+        .btn-red { background: var(--ph-red); }
+        .btn-green { background: var(--ph-green); }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
-        <h1 class="flag-text">Admin Lock</h1>
-        <input type="password" id="passInput" placeholder="Password" style="max-width: 250px; text-align: center; margin: 15px 0;">
-        <button class="btn-app btn-blue" style="max-width: 250px;" onclick="verifyAccess()">UNLOCK</button>
+        <h1 class="flag-text">Admin Secure</h1>
+        <input type="password" id="passInput" placeholder="Password" style="width: 200px; padding: 10px; margin: 15px 0; border-radius: 8px; border: 1px solid #ccc; text-align: center;">
+        <button class="btn-main btn-blue" style="width: 200px;" onclick="verifyAccess()">UNLOCK</button>
     </div>
 
     <div class="header-app" id="headerBrand">
@@ -90,50 +87,44 @@
             <div class="light-unit l-red"></div><div class="light-unit l-blue"></div>
             <div class="light-unit l-yellow"></div><div class="light-unit l-green"></div>
         </div>
-        <h1 class="flag-text">FreeShoppingPH Admin</h1>
-        <p id="modeStatus" style="font-size: 10px; font-weight: 900; margin-top: 5px;"></p>
+        <h1 class="flag-text">FreeShoppingPH</h1>
+        <p id="modeStatus" style="font-size: 9px; font-weight: 900; margin-top: 3px;"></p>
     </div>
 
     <div id="admin-dashboard">
         
-        <details class="exclusive-tab">
-            <summary>Claiming Portal Management</summary>
-            <div class="content">
-                <input type="text" id="gcashLink" placeholder="Paste GCash Link...">
-                <button class="btn-app btn-blue" onclick="assignLink()">ASSIGN PORTAL LINK</button>
+        <details open>
+            <summary>Live Monitoring & Logs</summary>
+            <div id="liveLogs" style="padding: 10px;">
+                <p style="text-align:center; font-size:10px; color:gray;">Loading data...</p>
             </div>
         </details>
 
-        <details class="exclusive-tab" open>
+        <details>
             <summary>System Access Control</summary>
-            <div class="content">
-                <div class="toggle-container">
+            <div style="padding: 10px;">
+                <div class="control-panel">
                     <label class="switch">
-                        <input type="checkbox" id="masterSwitch" onchange="updateSystemMode()">
+                        <input type="checkbox" id="masterSwitch" onchange="updateMode()">
                         <span class="slider"></span>
                     </label>
-                    <div style="flex:1">
-                        <p style="font-size: 10px; font-weight: 900; color: #64748b;">STRICT MODE</p>
-                        <p id="toggleLabel" style="font-size: 12px; font-weight: 900;">OFF</p>
-                    </div>
-                </div>
-
-                <div class="access-row">
-                    <input type="tel" id="targetPhone" maxlength="11" placeholder="09XXXXXXXXX" oninput="autoScanPhone(this.value)">
+                    <input type="tel" id="targetPhone" maxlength="11" placeholder="09XXXXXXXXX" class="mini-input" oninput="autoScan(this.value)">
                 </div>
                 
                 <div id="actionArea">
-                    <button class="btn-app btn-blue" style="opacity: 0.5;">WAITING FOR SCAN...</button>
+                    <button class="btn-main btn-blue" style="opacity: 0.5;">Enter 11 Digits...</button>
                 </div>
                 
-                <button class="btn-app btn-red" style="margin-top:5px;" onclick="handleDbAccess('blacklist')">RESTRICTED</button>
+                <button class="btn-main btn-red" style="margin-top:5px; background: #475569;" onclick="dbUpdate('blacklist')">RESTRICTED (BLACKLIST)</button>
             </div>
         </details>
 
-        <details class="exclusive-tab">
-            <summary>Live Monitoring</summary>
-            <div class="content" id="liveLogs">
-                </div>
+        <details>
+            <summary>Portal Management</summary>
+            <div style="padding: 10px;">
+                <input type="text" id="gcashLink" placeholder="GCash URL..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:8px;">
+                <button class="btn-main btn-blue" onclick="addLink()">ADD NEW PORTAL</button>
+            </div>
         </details>
 
     </div>
@@ -148,109 +139,80 @@
             messagingSenderId: "1028308831969",
             appId: "1:1028308831969:web:96e224e75d69ba74332924"
         };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- SESSION PERSISTENCE ---
-        window.onload = () => {
-            if(localStorage.getItem("admin_auth") === "granted") {
-                showDashboard();
-            }
-        };
-
+        // Auth Logic
+        window.onload = () => { if(localStorage.getItem("fs_auth") === "yes") openAdmin(); };
         async function verifyAccess() {
-            const input = document.getElementById('passInput').value;
+            const pass = document.getElementById('passInput').value;
             const snap = await db.ref('admin_settings/password').once('value');
-            if (input === (snap.val() || "1234")) {
-                localStorage.setItem("admin_auth", "granted");
-                showDashboard();
-            } else { alert("Mali!"); }
+            if(pass === (snap.val() || "1234")) { localStorage.setItem("fs_auth", "yes"); openAdmin(); }
+            else { alert("Wrong Password"); }
+        }
+        function openAdmin() { 
+            document.getElementById('auth-overlay').style.display = 'none'; 
+            document.getElementById('admin-dashboard').style.display = 'block'; 
         }
 
-        function showDashboard() {
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('admin-dashboard').style.display = 'block';
-        }
-
-        // --- AUTO SCAN LOGIC ---
-        async function autoScanPhone(val) {
-            if(val.length === 11) {
-                const area = document.getElementById('actionArea');
-                area.innerHTML = '<button class="btn-app btn-blue">SCANNING...</button>';
-                
-                const snap = await db.ref('whitelist/' + val).once('value');
-                if(snap.exists()) {
-                    area.innerHTML = `<button class="btn-app btn-red" onclick="removeUser('${val}')">REMOVE ACCESS</button>`;
-                } else {
-                    area.innerHTML = `<button class="btn-app btn-green" onclick="handleDbAccess('whitelist')">GAIN ACCESS</button>`;
-                }
-            }
-        }
-
-        // --- MONITORING (ROMAN NUMERALS) ---
+        // Roman Conversion
         function toRoman(num) {
-            const map = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
-            let roman = '';
-            for (let i in map) { while (num >= map[i]) { roman += i; num -= map[i]; } }
-            return roman;
+            const map = {V:5,IV:4,I:1}; let res = '';
+            for(let i in map){ while(num >= map[i]){ res += i; num -= map[i]; } }
+            return res;
         }
 
+        // Monitoring
         db.ref('AvailLinks').on('value', snap => {
-            const container = document.getElementById('liveLogs');
-            container.innerHTML = '';
-            let count = 1;
+            const box = document.getElementById('liveLogs'); box.innerHTML = '';
+            let i = 1;
             snap.forEach(child => {
                 const d = child.val();
-                const statusClass = d.status === 'available' ? 'status-active' : 'status-initiated';
-                const statusText = d.status === 'available' ? 'ACTIVE' : 'INITIATED';
-                
-                container.innerHTML += `
+                const isAvail = d.status === 'available';
+                box.innerHTML += `
                     <div class="log-card">
-                        <b>GCLink# ${toRoman(count)}</b> | <span class="${statusClass}">${statusText}</span><br>
-                        Beneficiary: <b>${d.beneficiary || 'Pending...'}</b>
-                        <div style="margin-top:8px;">
-                            <span class="action-text" style="color:var(--ph-yellow)" onclick="reuseLink('${child.key}')">REUSE</span>
-                            <span class="action-text" style="color:var(--ph-red)" onclick="removeLink('${child.key}')">REMOVE</span>
+                        <div>
+                            <b>GCLink#${toRoman(i)}</b> <span class="${isAvail?'status-active':'status-initiated'}">[${isAvail?'ACTIVE':'INITIATED'}]</span><br>
+                            <span style="color:#64748b">User: ${d.beneficiary || 'None'}</span>
                         </div>
-                    </div>
-                `;
-                count++;
+                        <div style="text-align:right">
+                            <span class="action-link" style="color:var(--ph-yellow)" onclick="reuse('${child.key}')">REUSE</span><br>
+                            <span class="action-link" style="color:var(--ph-red)" onclick="delLink('${child.key}')">REMOVE</span>
+                        </div>
+                    </div>`;
+                i++;
             });
         });
 
-        // --- CORE DATABASE FUNCTIONS ---
-        function updateSystemMode() {
-            const isChecked = document.getElementById('masterSwitch').checked;
-            db.ref('system_status').update({ mode: isChecked ? 'strict' : 'open' });
-            document.getElementById('toggleLabel').innerText = isChecked ? "ON" : "OFF";
+        // Auto Scan & Database
+        async function autoScan(num) {
+            if(num.length === 11) {
+                const btn = document.getElementById('actionArea');
+                const snap = await db.ref('whitelist/'+num).once('value');
+                if(snap.exists()) btn.innerHTML = `<button class="btn-main btn-red" onclick="removeAcc('${num}')">REMOVE ACCESS</button>`;
+                else btn.innerHTML = `<button class="btn-main btn-green" onclick="dbUpdate('whitelist')">GAIN ACCESS</button>`;
+            }
         }
 
+        function dbUpdate(node) { 
+            const n = document.getElementById('targetPhone').value; 
+            db.ref(node+'/'+n).set({t:Date.now()}); autoScan(n); 
+        }
+        function removeAcc(n) { db.ref('whitelist/'+n).remove(); db.ref('blacklist/'+n).remove(); autoScan(n); }
+        function updateMode() { db.ref('system_status').update({mode: document.getElementById('masterSwitch').checked?'strict':'open'}); }
+        
         db.ref('system_status').on('value', snap => {
-            const mode = snap.val()?.mode || 'strict';
-            const isStrict = mode === 'strict';
-            document.getElementById('masterSwitch').checked = isStrict;
-            document.getElementById('toggleLabel').innerText = isStrict ? "ON" : "OFF";
-            document.getElementById('headerBrand').className = "header-app mode-" + mode;
-            document.getElementById('modeStatus').innerText = isStrict ? "STRICT MODE ACTIVE" : "OPEN ACCESS";
+            const m = snap.val()?.mode || 'strict';
+            document.getElementById('masterSwitch').checked = (m === 'strict');
+            document.getElementById('headerBrand').className = "header-app mode-"+m;
+            document.getElementById('modeStatus').innerText = m.toUpperCase() + " MODE";
         });
 
-        function handleDbAccess(node) {
-            const num = document.getElementById('targetPhone').value;
-            db.ref(node + '/' + num).set({ added: Date.now() });
-            autoScanPhone(num);
-        }
-
-        function removeUser(num) {
-            db.ref('whitelist/' + num).remove();
-            db.ref('blacklist/' + num).remove();
-            autoScanPhone(num);
-        }
-
-        function reuseLink(key) { db.ref('AvailLinks/' + key).update({ status: 'available', beneficiary: 'NONE' }); }
-        function removeLink(key) { db.ref('AvailLinks/' + key).remove(); }
-        function assignLink() {
-            const url = document.getElementById('gcashLink').value;
-            db.ref('AvailLinks').push({ url, status: 'available', beneficiary: 'NONE' });
+        function reuse(k) { db.ref('AvailLinks/'+k).update({status:'available', beneficiary:'NONE'}); }
+        function delLink(k) { db.ref('AvailLinks/'+k).remove(); }
+        function addLink() { 
+            const u = document.getElementById('gcashLink').value; 
+            if(u) db.ref('AvailLinks').push({url:u, status:'available', beneficiary:'NONE'}); 
             document.getElementById('gcashLink').value = '';
         }
     </script>
