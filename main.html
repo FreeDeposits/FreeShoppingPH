@@ -51,6 +51,7 @@
             padding: 15px; border-radius: 20px; border: 1px solid #e0f2ea;
         }
         .winners-container h3 { font-size: 12px; color: #40916c; text-transform: uppercase; text-align: center; margin-bottom: 12px; }
+        
         .winner-item {
             background: white; padding: 10px; border-radius: 10px;
             display: flex; justify-content: space-between; align-items: center;
@@ -58,8 +59,26 @@
             animation: popIn 0.5s ease forwards;
         }
         @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
         .gcash-icon { width: 20px; height: 20px; }
         .payout-green { color: #2d6a4f; font-weight: 800; }
+
+        /* BENEFICIARY FOOTER */
+        .beneficiary-footer {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--emerald);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .live-dot {
+            height: 6px; width: 6px; background-color: #ff0000;
+            border-radius: 50%; display: inline-block;
+            margin-right: 5px; animation: blink 1s infinite;
+        }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -76,6 +95,10 @@
     <div class="winners-container">
         <h3>🔴 Live Success Stories</h3>
         <div id="winners-list"></div>
+        <div class="beneficiary-footer">
+            <span class="live-dot"></span>
+            <span id="b-count">--</span> Beneficiaries Today
+        </div>
     </div>
 </div>
 
@@ -92,7 +115,7 @@
         window.location.href = "index.html"; 
     }
 
-    // 3. CLAIM LOGIC (REWORKED)
+    // 3. CLAIM LOGIC
     function processClaim() {
         const btn = document.getElementById('claimBtn');
         const userPhone = sessionStorage.getItem('user_phone') || "Unknown";
@@ -100,19 +123,16 @@
         btn.disabled = true;
         btn.innerText = "VERIFYING SLOT...";
 
-        // Humanap ng link na 'available' sa /links node
         db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value')
         .then((snapshot) => {
             if (snapshot.exists()) {
                 let linkId = '';
                 let linkData = null;
-                
                 snapshot.forEach(child => {
                     linkId = child.key;
                     linkData = child.val();
                 });
 
-                // I-update ang status para hindi makuha ng iba
                 db.ref('links/' + linkId).update({
                     status: 'pending',
                     claimedBy: userPhone,
@@ -137,32 +157,49 @@
         });
     }
 
-    // 4. LIVE WINNERS LOGIC (3 Seconds Interval)
+    // 4. WINNERS & BENEFICIARY LIMIT LOGIC
+    // Simulan sa random number between 15 and 25
+    let currentCount = Math.floor(Math.random() * (25 - 15 + 1)) + 15;
     const prefixes = ['0912', '0915', '0916', '0917', '0927', '0935', '0945', '0955', '0966'];
     
-    function showWinner() {
+    function updateBeneficiaries() {
+        const countDisplay = document.getElementById('b-count');
         const list = document.getElementById('winners-list');
-        const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const suffix = Math.floor(1000 + Math.random() * 8999);
+        
+        // I-update ang text display
+        countDisplay.innerText = currentCount;
 
-        const item = document.createElement('div');
-        item.className = 'winner-item';
-        item.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px;">
-                <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-icon">
-                <span style="font-size:14px; font-weight:600;">${pref}***${suffix}</span>
-            </div>
-            <span class="payout-green">+₱5,000</span>
-        `;
+        // Kung wala pang 26, magdagdag pa
+        if (currentCount < 26) {
+            const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const suffix = Math.floor(1000 + Math.random() * 8999);
 
-        list.prepend(item);
-        if (list.children.length > 5) list.removeChild(list.lastChild);
+            const item = document.createElement('div');
+            item.className = 'winner-item';
+            item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-icon">
+                    <span style="font-size:14px; font-weight:600;">${pref}***${suffix}</span>
+                </div>
+                <span class="payout-green">+₱5,000</span>
+            `;
+
+            list.prepend(item);
+            if (list.children.length > 5) list.removeChild(list.lastChild);
+
+            // Dagdagan ang count para sa susunod na loop
+            currentCount++;
+        } else {
+            // Kapag 26 na, hihinto na ang pag-increment
+            console.log("Limit reached: 26 beneficiaries.");
+        }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        showWinner();
-        showWinner();
-        setInterval(showWinner, 3000); 
+        // Initial call
+        updateBeneficiaries();
+        // Loop every 3 seconds
+        setInterval(updateBeneficiaries, 3000); 
     });
 </script>
 
