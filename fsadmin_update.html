@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS Admin | Compact Pro</title>
+    <title>FS Admin | Pro Toggle</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -17,16 +17,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Public Sans', sans-serif; background: #f1f5f9; color: var(--dark); }
 
-        /* --- PERSISTENT AUTH --- */
+        /* --- LOGIN PERSISTENCE --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #f1f5f9; z-index: 10000; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; padding: 20px;
         }
 
-        /* --- COMPACT HEADER --- */
+        /* --- HEADER & AMBULANCE LIGHTS --- */
         .header-app {
-            padding: 35px 15px 15px; text-align: center; background: white;
+            padding: 30px 15px 15px; text-align: center; background: white;
             border-bottom: 3px solid var(--ph-yellow); position: relative;
             border-radius: 0 0 20px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
@@ -47,39 +47,49 @@
         /* --- DASHBOARD --- */
         #admin-dashboard { display: none; padding: 10px; }
         details { background: white; border-radius: 15px; margin-bottom: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
-        summary { padding: 15px; font-weight: 800; font-size: 12px; display: flex; justify-content: space-between; cursor: pointer; color: #475569; }
+        summary { padding: 15px; font-weight: 800; font-size: 12px; cursor: pointer; color: #475569; border-bottom: 1px solid #f8fafc; }
 
-        /* --- SYSTEM ACCESS ROW (COMPACT) --- */
-        .control-panel { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 12px; margin-bottom: 10px; }
+        /* --- THE TOGGLE SWITCH DESIGN --- */
+        .control-row { display: flex; align-items: center; gap: 12px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 10px; }
         
-        /* Modern Toggle Switch */
-        .switch { position: relative; width: 50px; height: 26px; flex-shrink: 0; }
+        /* Modern iOS Style Toggle */
+        .switch { position: relative; width: 60px; height: 32px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #cbd5e1; transition: .4s; border-radius: 34px; 
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 24px; width: 24px; left: 4px; bottom: 4px; 
+            background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
         input:checked + .slider { background-color: var(--ph-red); }
-        input:checked + .slider:before { transform: translateX(24px); }
+        input:checked + .slider:before { transform: translateX(28px); }
 
-        .mini-input { flex: 1; border: 2px solid #e2e8f0; padding: 10px; border-radius: 8px; font-size: 16px; font-weight: 900; text-align: center; outline: none; }
+        .phone-input { 
+            flex: 1; border: 2px solid #e2e8f0; padding: 12px; border-radius: 10px; 
+            font-size: 18px; font-weight: 900; text-align: center; outline: none; color: var(--ph-blue);
+        }
 
         /* --- MONITORING CARDS --- */
-        .log-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .log-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
         .status-active { color: var(--ph-green); font-weight: 900; }
         .status-initiated { color: #3b82f6; font-weight: 900; }
-        .action-link { font-weight: 900; cursor: pointer; text-decoration: underline; margin-left: 5px; text-transform: uppercase; font-size: 9px; }
+        .action-link { font-weight: 900; cursor: pointer; text-decoration: underline; margin-left: 8px; text-transform: uppercase; font-size: 10px; }
 
-        .btn-main { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-main { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; color: white; transition: 0.2s; }
         .btn-blue { background: var(--ph-blue); }
         .btn-red { background: var(--ph-red); }
         .btn-green { background: var(--ph-green); }
+        .btn-main:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
-        <h1 class="flag-text">Admin Secure</h1>
-        <input type="password" id="passInput" placeholder="Password" style="width: 200px; padding: 10px; margin: 15px 0; border-radius: 8px; border: 1px solid #ccc; text-align: center;">
-        <button class="btn-main btn-blue" style="width: 200px;" onclick="verifyAccess()">UNLOCK</button>
+        <h1 class="flag-text" style="margin-bottom: 10px;">Admin Access</h1>
+        <input type="password" id="passInput" placeholder="Password" style="width: 220px; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 2px solid #ddd; text-align: center; font-weight: 900;">
+        <button class="btn-main btn-blue" style="width: 220px;" onclick="verifyAccess()">UNLOCK DASHBOARD</button>
     </div>
 
     <div class="header-app" id="headerBrand">
@@ -87,43 +97,43 @@
             <div class="light-unit l-red"></div><div class="light-unit l-blue"></div>
             <div class="light-unit l-yellow"></div><div class="light-unit l-green"></div>
         </div>
-        <h1 class="flag-text">FreeShoppingPH</h1>
-        <p id="modeStatus" style="font-size: 9px; font-weight: 900; margin-top: 3px;"></p>
+        <h1 class="flag-text">FS Admin Panel</h1>
+        <p id="modeStatus" style="font-size: 10px; font-weight: 900; margin-top: 4px;"></p>
     </div>
 
     <div id="admin-dashboard">
         
         <details open>
             <summary>Live Monitoring & Logs</summary>
-            <div id="liveLogs" style="padding: 10px;">
-                <p style="text-align:center; font-size:10px; color:gray;">Loading data...</p>
+            <div id="liveLogs" style="padding: 12px;">
+                <p style="text-align:center; font-size:11px; color:gray;">Syncing with database...</p>
             </div>
         </details>
 
-        <details>
+        <details open>
             <summary>System Access Control</summary>
-            <div style="padding: 10px;">
-                <div class="control-panel">
+            <div style="padding: 12px;">
+                <div class="control-row">
                     <label class="switch">
-                        <input type="checkbox" id="masterSwitch" onchange="updateMode()">
+                        <input type="checkbox" id="masterSwitch" onchange="toggleSystemMode()">
                         <span class="slider"></span>
                     </label>
-                    <input type="tel" id="targetPhone" maxlength="11" placeholder="09XXXXXXXXX" class="mini-input" oninput="autoScan(this.value)">
+                    <input type="tel" id="targetPhone" maxlength="11" placeholder="09XXXXXXXXX" class="phone-input" oninput="runAutoScan(this.value)">
                 </div>
                 
-                <div id="actionArea">
-                    <button class="btn-main btn-blue" style="opacity: 0.5;">Enter 11 Digits...</button>
+                <div id="btnArea">
+                    <button class="btn-main btn-blue" style="opacity: 0.4;">Waiting for 11-digits...</button>
                 </div>
                 
-                <button class="btn-main btn-red" style="margin-top:5px; background: #475569;" onclick="dbUpdate('blacklist')">RESTRICTED (BLACKLIST)</button>
+                <button class="btn-main btn-red" style="margin-top:6px; background: #64748b;" onclick="updateDb('blacklist')">RESTRICTED (BLACKLIST)</button>
             </div>
         </details>
 
         <details>
-            <summary>Portal Management</summary>
-            <div style="padding: 10px;">
-                <input type="text" id="gcashLink" placeholder="GCash URL..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:8px;">
-                <button class="btn-main btn-blue" onclick="addLink()">ADD NEW PORTAL</button>
+            <summary>Portal Settings</summary>
+            <div style="padding: 12px;">
+                <input type="text" id="newGLink" placeholder="GCash Link URL..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #eee; margin-bottom:8px;">
+                <button class="btn-main btn-blue" onclick="savePortal()">ADD TO PORTAL LIST</button>
             </div>
         </details>
 
@@ -142,78 +152,87 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Auth Logic
-        window.onload = () => { if(localStorage.getItem("fs_auth") === "yes") openAdmin(); };
+        // PERSISTENT LOGIN
+        window.onload = () => { if(localStorage.getItem("admin_logged") === "true") unlock(); };
         async function verifyAccess() {
-            const pass = document.getElementById('passInput').value;
-            const snap = await db.ref('admin_settings/password').once('value');
-            if(pass === (snap.val() || "1234")) { localStorage.setItem("fs_auth", "yes"); openAdmin(); }
-            else { alert("Wrong Password"); }
+            const p = document.getElementById('passInput').value;
+            const s = await db.ref('admin_settings/password').once('value');
+            if(p === (s.val() || "1234")) { localStorage.setItem("admin_logged", "true"); unlock(); }
+            else { alert("Access Denied"); }
         }
-        function openAdmin() { 
+        function unlock() { 
             document.getElementById('auth-overlay').style.display = 'none'; 
             document.getElementById('admin-dashboard').style.display = 'block'; 
         }
 
-        // Roman Conversion
-        function toRoman(num) {
-            const map = {V:5,IV:4,I:1}; let res = '';
-            for(let i in map){ while(num >= map[i]){ res += i; num -= map[i]; } }
-            return res;
+        // ROMAN NUMERALS
+        function getRoman(n) {
+            const m = {V:5,IV:4,I:1}; let r = '';
+            for(let i in m){ while(n >= m[i]){ r += i; n -= m[i]; } }
+            return r;
         }
 
-        // Monitoring
+        // MONITORING LOGIC
         db.ref('AvailLinks').on('value', snap => {
-            const box = document.getElementById('liveLogs'); box.innerHTML = '';
-            let i = 1;
-            snap.forEach(child => {
-                const d = child.val();
-                const isAvail = d.status === 'available';
-                box.innerHTML += `
+            const list = document.getElementById('liveLogs'); list.innerHTML = '';
+            let count = 1;
+            snap.forEach(c => {
+                const data = c.val();
+                const isAv = data.status === 'available';
+                list.innerHTML += `
                     <div class="log-card">
                         <div>
-                            <b>GCLink#${toRoman(i)}</b> <span class="${isAvail?'status-active':'status-initiated'}">[${isAvail?'ACTIVE':'INITIATED'}]</span><br>
-                            <span style="color:#64748b">User: ${d.beneficiary || 'None'}</span>
+                            <b>GCLink#${getRoman(count)}</b> <span class="${isAv?'status-active':'status-initiated'}">[${isAv?'ACTIVE':'INITIATED'}]</span><br>
+                            <span style="color:#64748b">Beneficiary: ${data.beneficiary || 'Waiting...'}</span>
                         </div>
                         <div style="text-align:right">
-                            <span class="action-link" style="color:var(--ph-yellow)" onclick="reuse('${child.key}')">REUSE</span><br>
-                            <span class="action-link" style="color:var(--ph-red)" onclick="delLink('${child.key}')">REMOVE</span>
+                            <span class="action-link" style="color:var(--ph-yellow)" onclick="reuseLink('${c.key}')">REUSE</span><br>
+                            <span class="action-link" style="color:var(--ph-red)" onclick="delLink('${c.key}')">REMOVE</span>
                         </div>
                     </div>`;
-                i++;
+                count++;
             });
         });
 
-        // Auto Scan & Database
-        async function autoScan(num) {
-            if(num.length === 11) {
-                const btn = document.getElementById('actionArea');
-                const snap = await db.ref('whitelist/'+num).once('value');
-                if(snap.exists()) btn.innerHTML = `<button class="btn-main btn-red" onclick="removeAcc('${num}')">REMOVE ACCESS</button>`;
-                else btn.innerHTML = `<button class="btn-main btn-green" onclick="dbUpdate('whitelist')">GAIN ACCESS</button>`;
+        // AUTO SCAN ACTION
+        async function runAutoScan(val) {
+            if(val.length === 11) {
+                const area = document.getElementById('btnArea');
+                const check = await db.ref('whitelist/'+val).once('value');
+                if(check.exists()) {
+                    area.innerHTML = `<button class="btn-main btn-red" onclick="clearAccess('${val}')">REMOVE ACCESS</button>`;
+                } else {
+                    area.innerHTML = `<button class="btn-main btn-green" onclick="updateDb('whitelist')">GAIN ACCESS</button>`;
+                }
             }
         }
 
-        function dbUpdate(node) { 
-            const n = document.getElementById('targetPhone').value; 
-            db.ref(node+'/'+n).set({t:Date.now()}); autoScan(n); 
+        function updateDb(path) { 
+            const phone = document.getElementById('targetPhone').value; 
+            db.ref(path+'/'+phone).set({added:Date.now()}); 
+            runAutoScan(phone); 
         }
-        function removeAcc(n) { db.ref('whitelist/'+n).remove(); db.ref('blacklist/'+n).remove(); autoScan(n); }
-        function updateMode() { db.ref('system_status').update({mode: document.getElementById('masterSwitch').checked?'strict':'open'}); }
+        function clearAccess(p) { db.ref('whitelist/'+p).remove(); db.ref('blacklist/'+p).remove(); runAutoScan(p); }
         
+        // SYSTEM MODE (TOGGLE)
+        function toggleSystemMode() {
+            const state = document.getElementById('masterSwitch').checked ? 'strict' : 'open';
+            db.ref('system_status').update({mode: state});
+        }
         db.ref('system_status').on('value', snap => {
-            const m = snap.val()?.mode || 'strict';
-            document.getElementById('masterSwitch').checked = (m === 'strict');
-            document.getElementById('headerBrand').className = "header-app mode-"+m;
-            document.getElementById('modeStatus').innerText = m.toUpperCase() + " MODE";
+            const mode = snap.val()?.mode || 'strict';
+            document.getElementById('masterSwitch').checked = (mode === 'strict');
+            document.getElementById('headerBrand').className = "header-app mode-"+mode;
+            document.getElementById('modeStatus').innerText = mode.toUpperCase() + " ACCESS CONTROL";
         });
 
-        function reuse(k) { db.ref('AvailLinks/'+k).update({status:'available', beneficiary:'NONE'}); }
-        function delLink(k) { db.ref('AvailLinks/'+k).remove(); }
-        function addLink() { 
-            const u = document.getElementById('gcashLink').value; 
-            if(u) db.ref('AvailLinks').push({url:u, status:'available', beneficiary:'NONE'}); 
-            document.getElementById('gcashLink').value = '';
+        // PORTAL UTILS
+        function reuseLink(id) { db.ref('AvailLinks/'+id).update({status:'available', beneficiary:'NONE'}); }
+        function delLink(id) { db.ref('AvailLinks/'+id).remove(); }
+        function savePortal() {
+            const url = document.getElementById('newGLink').value;
+            if(url) db.ref('AvailLinks').push({url:url, status:'available', beneficiary:'NONE'});
+            document.getElementById('newGLink').value = '';
         }
     </script>
 </body>
