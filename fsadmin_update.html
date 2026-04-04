@@ -2,246 +2,117 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEXUS v2 | Admin Control</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS ADMIN | Dispatcher</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="js/config.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Public+Sans:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --primary: #40916c; /* Emerald from Main Page */
-            --bg-dark: #0b0f13; 
-            --card-bg: #161b22;
-            --success: #00ff88; 
-            --danger: #ff4d4d; 
-            --warning: #ffcc00;
-            --text-main: #f0f6fc;
-            --text-dim: #8b949e;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Public Sans', sans-serif; }
-        
-        body { 
-            background: var(--bg-dark); 
-            color: var(--text-main); 
-            padding: 15px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        header { 
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(64, 145, 108, 0.3);
-            margin-bottom: 20px;
-        }
-        h1 { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--primary); }
-        .status-line { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
-
-        .glass-card {
-            background: var(--card-bg); 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 15px; 
-            padding: 20px; 
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .label { font-size: 12px; font-weight: 800; color: var(--text-dim); margin-bottom: 10px; display: block; }
-
-        textarea, input {
-            width: 100%; 
-            background: #0d1117; 
-            border: 1px solid #30363d;
-            color: var(--primary); 
-            padding: 12px; 
-            border-radius: 8px; 
-            outline: none; 
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px; 
-            margin-bottom: 10px;
-        }
-
-        .btn {
-            width: 100%; padding: 15px; border-radius: 8px; border: none;
-            font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s;
-        }
-        .btn-deploy { background: var(--primary); color: white; }
-        .btn-deploy:active { transform: scale(0.98); }
-
-        /* SLOT ITEMS */
-        .slot-box {
-            background: #0d1117; border: 1px solid #30363d;
-            border-radius: 10px; padding: 12px; margin-bottom: 10px;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .slot-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .slot-id { font-size: 10px; color: var(--text-dim); font-family: 'JetBrains Mono'; }
-        
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; }
-        .badge-avail { background: rgba(0, 255, 136, 0.1); color: var(--success); }
-        .badge-pend { background: rgba(255, 204, 0, 0.1); color: var(--warning); border: 1px solid var(--warning); }
-
-        .user-info { font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 10px; display: block; }
-
-        .actions { display: flex; gap: 8px; }
-        .btn-small { flex: 1; padding: 8px; font-size: 11px; border-radius: 5px; border: none; font-weight: 700; cursor: pointer; }
-        .btn-ret { background: var(--warning); color: #000; }
-        .btn-del { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-
-        #toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            padding: 10px 20px; border-radius: 50px; font-size: 12px; font-weight: 800;
-            z-index: 1000; display: none;
-        }
+        body { background: #0b0f13; color: #f0f6fc; font-family: 'Public Sans', sans-serif; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: #161b22; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #30363d; }
+        h2 { font-size: 14px; color: #40916c; margin-bottom: 15px; text-transform: uppercase; }
+        textarea, input { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #58a6ff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-family: 'JetBrains Mono'; }
+        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-add { background: #238636; color: white; }
+        .slot { background: #0d1117; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #30363d; }
+        .in-use { border-left-color: #f85149; }
+        .avail { border-left-color: #2ea043; }
+        .slot-info { font-size: 11px; margin-bottom: 8px; }
+        .btn-group { display: flex; gap: 5px; }
+        .btn-rec { background: #d29922; color: black; font-size: 10px; flex: 2; }
+        .btn-del { background: transparent; border: 1px solid #f85149; color: #f85149; font-size: 10px; flex: 1; }
     </style>
 </head>
 <body>
 
-    <div id="toast"></div>
+<div class="container">
+    <h1 style="color:#40916c; font-size:20px; margin-bottom:20px;">NEXUS DISPATCHER</h1>
 
-    <header>
-        <h1>NEXUS_V2 // CONTROL</h1>
-        <div class="status-line" id="connectionStatus">● System Online</div>
-    </header>
-
-    <div class="glass-card">
-        <span class="label">ADD MERCHANT LINKS (Max 5)</span>
-        <textarea id="linkInput" rows="2" placeholder="Paste link here..."></textarea>
-        <button class="btn btn-deploy" onclick="deployLink()">🚀 DEPLOY TO MAIN</button>
+    <div class="card">
+        <h2>Add New Merchant Link</h2>
+        <textarea id="newLink" placeholder="Paste GCash/Merchant link here..."></textarea>
+        <button class="btn btn-add" onclick="addLink()">Deploy Link</button>
     </div>
 
-    <div class="glass-card">
-        <span class="label">LIVE BOOKING SLOTS</span>
-        <div id="slotContainer">
-            </div>
+    <div class="card">
+        <h2>Live Monitor (Queue)</h2>
+        <div id="monitor"></div>
     </div>
 
-    <div class="glass-card" style="border-top: 2px solid var(--danger);">
-        <span class="label" style="color: var(--danger);">GHOST TERMINATOR (BAN)</span>
-        <input type="text" id="banTarget" placeholder="Phone Number">
-        <button class="btn btn-del" style="width: 100%;" onclick="banUser()">BLOCK ACCESS</button>
-        <div id="banList" style="margin-top: 15px;"></div>
+    <div class="card">
+        <h2>Ban Management</h2>
+        <input type="text" id="banPhone" placeholder="Phone Number to Ban">
+        <button class="btn" style="background:#f85149; color:white;" onclick="banUser()">Block Access</button>
+        <div id="banList" style="margin-top:10px; font-size:12px;"></div>
     </div>
+</div>
 
 <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
+        authDomain: "freeshoppingph-3bade.firebaseapp.com",
+        databaseURL: "https://freeshoppingph-3bade-default-rtdb.firebaseio.com",
+        projectId: "freeshoppingph-3bade",
+        storageBucket: "freeshoppingph-3bade.firebasestorage.app",
+        messagingSenderId: "858532604838",
+        appId: "1:858532604838:web:59a6a0f31d63c2cdda7d67"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function showToast(msg, color) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.background = color;
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 2500);
-    }
-
-    // 1. DEPLOY LOGIC (Itinugma sa main.html)
-    function deployLink() {
-        const url = document.getElementById('linkInput').value.trim();
+    function addLink() {
+        const url = document.getElementById('newLink').value;
         if(!url) return;
-
-        // Check limit
-        db.ref('links').once('value', snap => {
-            if(snap.numChildren() >= 5) {
-                showToast("LIMIT REACHED (5 MAX)", "#ff4d4d");
-                return;
-            }
-
-            db.ref('links').push({
-                url: url,
-                status: 'available',
-                claimedBy: 'NONE', // Match sa main.html
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                document.getElementById('linkInput').value = '';
-                showToast("LINK DEPLOYED!", "#40916c");
-            });
-        });
+        db.ref('links').push({ url, status: 'available', claimedBy: 'NONE' });
+        document.getElementById('newLink').value = '';
     }
 
-    // 2. RETRIEVE LOGIC (Reset slot)
-    function retrieve(key) {
-        if(confirm("Kick user and reset slot?")) {
-            db.ref('links/' + key).update({
-                status: 'available',
-                claimedBy: 'NONE'
-            });
-            showToast("SLOT RESET", "#ffcc00");
-        }
+    function recycle(key) {
+        db.ref('links/' + key).update({ status: 'available', claimedBy: 'NONE' });
     }
 
-    // 3. DELETE LOGIC
-    function removeSlot(key) {
-        if(confirm("Remove permanently?")) {
-            db.ref('links/' + key).remove();
-        }
+    function remove(key) {
+        if(confirm("Delete link?")) db.ref('links/' + key).remove();
     }
 
-    // 4. BAN LOGIC
     function banUser() {
-        const phone = document.getElementById('banTarget').value.trim();
-        if(!phone) return;
-        db.ref('banned_ghosts/' + phone).set({ date: Date.now() });
-        document.getElementById('banTarget').value = '';
+        const p = document.getElementById('banPhone').value;
+        if(p) db.ref('banned_ghosts/' + p).set(true);
+        document.getElementById('banPhone').value = '';
     }
 
-    function liftBan(phone) {
-        db.ref('banned_ghosts/' + phone).remove();
-    }
-
-    // --- REALTIME LISTENERS ---
-
-    // Links Monitor
+    // Monitor Listener
     db.ref('links').on('value', snap => {
-        const container = document.getElementById('slotContainer');
-        container.innerHTML = '';
-        
-        if(!snap.exists()) {
-            container.innerHTML = '<div style="text-align:center; color:#555; font-size:12px;">NO ACTIVE LINKS</div>';
-            return;
-        }
-
+        const cont = document.getElementById('monitor');
+        cont.innerHTML = '';
         snap.forEach(child => {
-            const data = child.val();
-            const isAvail = data.status === 'available';
-            
-            container.innerHTML += `
-                <div class="slot-box">
-                    <div class="slot-top">
-                        <span class="slot-id">...${child.key.substr(-6)}</span>
-                        <span class="badge ${isAvail ? 'badge-avail' : 'badge-pend'}">
-                            ${isAvail ? 'READY' : '⚠️ IN USE'}
-                        </span>
+            const d = child.val();
+            const isUsed = d.status === 'in-use';
+            cont.innerHTML += `
+                <div class="slot ${isUsed ? 'in-use' : 'avail'}">
+                    <div class="slot-info">
+                        <strong>STATUS:</strong> ${d.status.toUpperCase()}<br>
+                        <strong>USER:</strong> ${d.claimedBy}<br>
+                        <span style="color:#58a6ff;">${d.url.substring(0,30)}...</span>
                     </div>
-                    ${!isAvail ? `<span class="user-info">👤 ${data.claimedBy}</span>` : ''}
-                    <div class="actions">
-                        <button class="btn-small btn-ret" onclick="retrieve('${child.key}')">RESET</button>
-                        <button class="btn-small btn-del" onclick="removeSlot('${child.key}')">REMOVE</button>
+                    <div class="btn-group">
+                        <button class="btn btn-rec" onclick="recycle('${child.key}')">♻️ RECYCLE / MAKE AVAILABLE</button>
+                        <button class="btn btn-del" onclick="remove('${child.key}')">DEL</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    // Ban List Monitor
+    // Ban List Listener
     db.ref('banned_ghosts').on('value', snap => {
-        const container = document.getElementById('banList');
-        container.innerHTML = '';
-        snap.forEach(child => {
-            container.innerHTML += `
-                <div style="display:flex; justify-content:space-between; background:#1c2128; padding:8px; border-radius:5px; margin-bottom:5px;">
-                    <span style="color:var(--danger); font-size:12px;">${child.key}</span>
-                    <button onclick="liftBan('${child.key}')" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">[UNBAN]</button>
-                </div>
-            `;
+        const list = document.getElementById('banList');
+        list.innerHTML = '<strong>Banned:</strong> ';
+        snap.forEach(c => {
+            list.innerHTML += `${c.key} <span style="cursor:pointer; color:red" onclick="db.ref('banned_ghosts/${c.key}').remove()">[X]</span>, `;
         });
     });
 </script>
-
 </body>
 </html>
