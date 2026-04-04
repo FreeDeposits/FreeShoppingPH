@@ -130,6 +130,16 @@
         .slider:before { position: absolute; content: ""; height: 28px; width: 28px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         input:checked + .slider { background-color: #3b82f6; } /* Blue when UP/OPEN */
         input:checked + .slider:before { transform: translateY(-40px); }
+
+        #whiteBtn {
+    transition: all 0.3s ease;
+}
+/* Style para sa Remove Access state */
+.btn-remove {
+    background: #475569 !important; /* Slate color para sa "Remove" */
+    color: white;
+}
+        
     </style>
 </head>
 <body class="status-strict"> <div class="ambulance-light" id="light-left"></div>
@@ -171,9 +181,9 @@
         <div class="content security-grid">
             
             <div class="side-panel">
-                <h4>Whitelist</h4>
-                <input type="tel" id="whiteNum" placeholder="09xxxxxxxxx">
-                <button class="btn-sec-green" onclick="addWhitelist()">GAIN ACCESS</button>
+            <h4>Whitelist</h4>
+            <input type="tel" id="whiteNum" placeholder="09xxxxxxxxx" oninput="checkWhitelistRealtime()">
+            <button id="whiteBtn" class="btn-sec-green" onclick="handleWhitelistAction()">GAIN ACCESS</button>
             </div>
 
             <div class="switch-wrapper">
@@ -310,6 +320,56 @@
                 switchIndicator.innerText = 'STRICT';
             }
         });
+
+        // A. REAL-TIME SEARCH LOGIC
+async function checkWhitelistRealtime() {
+    const num = document.getElementById('whiteNum').value.trim();
+    const btn = document.getElementById('whiteBtn');
+
+    // Magsisimulang mag-search lang kapag kumpleto ang 11 digits
+    if (num.length === 11) {
+        const snap = await db.ref('whitelist/' + num).once('value');
+        
+        if (snap.exists()) {
+            // MATCH FOUND: Change button to "Remove Access"
+            btn.innerText = "REMOVE ACCESS";
+            btn.className = "btn-sec-red btn-remove"; // Ginawang red/slate
+        } else {
+            // NO MATCH: Stay as "Gain Access"
+            btn.innerText = "GAIN ACCESS";
+            btn.className = "btn-sec-green";
+        }
+    } else {
+        // Reset button pag kulang ang digits
+        btn.innerText = "GAIN ACCESS";
+        btn.className = "btn-sec-green";
+    }
+}
+
+// B. ACTION HANDLER (Add or Remove)
+async function handleWhitelistAction() {
+    const num = document.getElementById('whiteNum').value.trim();
+    const btn = document.getElementById('whiteBtn');
+
+    if (num.length !== 11) return alert("Dapat 11 digits.");
+
+    if (btn.innerText === "REMOVE ACCESS") {
+        // REMOVE LOGIC
+        if (confirm(`Alisin ang ${num} sa Whitelist?`)) {
+            await db.ref('whitelist/' + num).remove();
+            alert("Access Removed.");
+            document.getElementById('whiteNum').value = '';
+            checkWhitelistRealtime(); // Reset button UI
+        }
+    } else {
+        // ADD LOGIC
+        await db.ref('whitelist/' + num).set({ addedAt: Date.now() });
+        alert(num + " is now Whitelisted.");
+        document.getElementById('whiteNum').value = '';
+        checkWhitelistRealtime(); // Reset button UI
+    }
+}
+        
     </script>
 </body>
 </html>
