@@ -133,17 +133,15 @@
         }
 
         .gcash-mini {
-            width: 20px;
-            height: 20px;
-            background: var(--gcash-blue);
-            border-radius: 4px;
-            padding: 2px;
-            object-fit: contain;
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            object-fit: cover;
+            display: block;
         }
 
         .payout-green { color: var(--emerald); font-weight: 800; }
 
-        /* LIVE BENEFICIARY FOOTER ANIMATION */
         .live-footer {
             margin-top: 15px;
             font-size: 10px;
@@ -181,7 +179,7 @@
         <div id="winners-list"></div>
         <div class="live-footer">
             <span class="dot"></span> 
-            <span id="beneficiary-count">1,402</span> Beneficiaries Today
+            <span id="beneficiary-count">20</span> Beneficiaries Today
         </div>
     </div>
 </div>
@@ -293,29 +291,31 @@
     }
 
     // 4. LIVE WINNERS & BENEFICIARY COUNTER
-    let currentBeneficiaries = 1402;
+    let currentBeneficiaries = 20;
 
     function generateWinner() {
         const list = document.getElementById('winners-list');
         const countDisplay = document.getElementById('beneficiary-count');
         if (!list) return;
 
-        // Increase count randomly
-        currentBeneficiaries += Math.floor(Math.random() * 3) + 1;
+        // Increase count 20 per day start (adds 1 randomly)
+        currentBeneficiaries += Math.floor(Math.random() * 2);
         if(countDisplay) countDisplay.innerText = currentBeneficiaries.toLocaleString();
 
-        const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935', '0955', '0915'];
+        const prefixes = ['0912', '0915', '0916', '0917', '0922', '0927', '0935', '0945', '0955', '0966'];
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const lastThree = Math.floor(100 + Math.random() * 899); 
+        const randomSuffix = Math.floor(1000 + Math.random() * 8999); // 4 random digits
         
+        // Static URL for icon para iwas load error
         const myGcashImage = "https://freeshoppingph.github.io/FreeShoppingPH/gc_icon.png"; 
 
         const winnerEntry = document.createElement('div');
         winnerEntry.className = 'winner-item';
+        // FORMAT: 0912***8912
         winnerEntry.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <img src="${myGcashImage}" class="gcash-mini" alt="G" onerror="this.style.display='none'">
-                <span>${randomPrefix}****${lastThree}</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${myGcashImage}" class="gcash-mini" alt="GCash">
+                <span>${randomPrefix}***${randomSuffix}</span>
             </div>
             <strong class="payout-green">+₱5,000</strong>
         `;
@@ -328,7 +328,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         generateWinner();
         generateWinner();
-        setInterval(generateWinner, 4500);
+        setInterval(generateWinner, 4000); // Bilis ng palit ng winners (4 seconds)
     });
 </script>
 
