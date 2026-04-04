@@ -1,0 +1,15 @@
+{
+  "short_name": "FS-Admin",
+  "name": "FreeShopping Admin Panel",
+  "icons": [
+    {
+      "src": "https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg",
+      "type": "image/jpg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/fsadmin_update.html",
+  "background_color": "#111111",
+  "display": "standalone",
+  "theme_color": "#0038a8"
+}
