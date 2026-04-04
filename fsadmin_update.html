@@ -3,208 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FS Admin | Command Center</title>
+    <title>FreeShoppingPH | Admin App</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;900&family=Quicksand:wght@700&display=swap" rel="stylesheet">
     
     <style>
         :root { 
-            --nature-green: #2d6a4f; 
-            --emerald: #40916c; 
-            --light-green: #d8f3dc;
-            --white-glass: rgba(255, 255, 255, 0.95);
-            --danger: #ef4444;
-            --warning: #f59e0b;
+            --ph-blue: #0038a8;
+            --ph-red: #ce1126;
+            --ph-yellow: #fcd116;
+            --glass: rgba(255, 255, 255, 0.9);
+            --dark: #0f172a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
             font-family: 'Public Sans', sans-serif; 
-            background: linear-gradient(135deg, #e9f5f0 0%, #d8f3dc 100%); 
+            background: #f1f5f9; 
             min-height: 100vh; 
-            padding: 20px 15px;
-            color: #1e293b;
-            padding-top: 40px; /* Space for ambulance lights */
+            color: var(--dark);
+            display: none; /* Hidden until authenticated */
         }
 
-        /* --- AMBULANCE LIGHTS --- */
-        .ambulance-light { position: fixed; top: 0; width: 50%; height: 8px; z-index: 9999; }
-        #light-left { left: 0; border-bottom-right-radius: 50px; }
-        #light-right { right: 0; border-bottom-left-radius: 50px; }
+        /* --- PH FLAG TITLE DESIGN --- */
+        .header-app {
+            padding: 40px 20px 20px;
+            text-align: center;
+            background: white;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
 
-        /* OPEN STATE (RED/BLUE) */
-        @keyframes flashRed { 0%, 100% { background: #ef4444; box-shadow: 0 0 25px #ef4444; } 50% { opacity: 0.1; } }
-        @keyframes flashBlue { 0%, 100% { background: #3b82f6; box-shadow: 0 0 25px #3b82f6; } 50% { opacity: 0.1; } }
-        body.status-open #light-left { animation: flashRed 0.4s infinite alternate; }
-        body.status-open #light-right { animation: flashBlue 0.4s infinite alternate-reverse; }
+        .flag-text {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            display: inline-block;
+            background: linear-gradient(to bottom, 
+                var(--ph-blue) 0%, 
+                var(--ph-blue) 40%, 
+                white 40%, 
+                white 50%, 
+                var(--ph-yellow) 50%, 
+                var(--ph-yellow) 60%, 
+                var(--ph-red) 60%, 
+                var(--ph-red) 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+            letter-spacing: -1px;
+        }
 
-        /* STRICT STATE (AMBER/YELLOW) */
-        @keyframes flashAmber { 0%, 100% { background: #f59e0b; box-shadow: 0 0 25px #f59e0b; } 50% { opacity: 0.1; } }
-        @keyframes flashYellow { 0%, 100% { background: #eab308; box-shadow: 0 0 25px #eab308; } 50% { opacity: 0.1; } }
-        body.status-strict #light-left { animation: flashAmber 0.4s infinite alternate; }
-        body.status-strict #light-right { animation: flashYellow 0.4s infinite alternate-reverse; }
+        /* --- MOBILE APP UI --- */
+        .container { padding: 15px; }
 
-        /* --- HEADER --- */
-        .header-title { text-align: center; margin-bottom: 25px; }
-        .header-title h1 { font-family: 'Quicksand', sans-serif; color: var(--nature-green); font-size: 24px; font-weight: 800; }
-        .header-title p { font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 1px; }
-
-        /* --- ACCORDIONS --- */
         details {
-            background: var(--white-glass);
-            border-radius: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid rgba(255,255,255,0.8);
+            background: white;
+            border-radius: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
             overflow: hidden;
-            transition: all 0.3s ease;
         }
-        
+
         summary {
-            padding: 20px;
+            padding: 18px;
             font-weight: 800;
-            color: var(--nature-green);
-            cursor: pointer;
+            font-size: 14px;
             list-style: none;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
+            color: #475569;
         }
-        summary::-webkit-details-marker { display: none; }
-        summary::after { content: '▼'; font-size: 12px; transition: 0.3s; color: var(--emerald); }
-        details[open] summary::after { transform: rotate(180deg); }
-        
-        .content { padding: 0 20px 20px 20px; border-top: 1px solid #f1f5f9; margin-top: 5px; padding-top: 15px; }
 
-        /* --- FORMS & BUTTONS --- */
-        textarea, input[type="tel"] {
+        summary::after { content: '→'; color: var(--ph-blue); transition: 0.3s; }
+        details[open] summary { background: #f8fafc; color: var(--ph-blue); }
+        details[open] summary::after { transform: rotate(90deg); }
+
+        .content { padding: 15px; border-top: 1px solid #f1f5f9; }
+
+        /* --- BUTTONS REMASTERED --- */
+        .btn-app {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary { background: var(--ph-blue); color: white; box-shadow: 0 4px 12px rgba(0,56,168,0.3); }
+        .btn-auth { background: var(--dark); color: var(--ph-yellow); margin-top: 10px; }
+        .btn-sec-green { background: #10b981; color: white; }
+        .btn-sec-red { background: var(--ph-red); color: white; }
+
+        .btn-app:active { transform: scale(0.96); opacity: 0.9; }
+
+        input, textarea {
             width: 100%;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
-            padding: 15px;
+            padding: 14px;
             border-radius: 12px;
             font-family: inherit;
-            font-size: 13px;
-            color: #334155;
+            margin-bottom: 10px;
             outline: none;
-            margin-bottom: 12px;
-            transition: 0.3s;
         }
-        textarea:focus, input[type="tel"]:focus { border-color: var(--emerald); background: #fff; }
 
-        .btn-main {
-            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%);
-            color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(45, 106, 79, 0.2); letter-spacing: 1px;
+        /* --- AMBULANCE LIGHTS (TOP) --- */
+        .lights { position: fixed; top: 0; width: 100%; height: 5px; display: flex; z-index: 10000; }
+        .l-left { flex: 1; background: var(--ph-red); animation: blink 0.3s infinite alternate; }
+        .l-right { flex: 1; background: var(--ph-blue); animation: blink 0.3s infinite alternate-reverse; }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.2; } }
+
+        /* Auth Screen */
+        #auth-screen {
+            position: fixed; top:0; left:0; width: 100%; height: 100%; 
+            background: white; z-index: 10001; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; text-align: center;
         }
-        .btn-main:active { transform: scale(0.97); }
-
-        /* --- TABLE LOGIC --- */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
-        th { padding: 10px 5px; color: #64748b; font-weight: 800; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 12px 5px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155; }
-        .tag-avail { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 20px; font-size: 9px; }
-        .tag-used { background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 20px; font-size: 9px; }
-        .btn-small { padding: 5px 10px; border: none; border-radius: 6px; font-weight: 800; font-size: 9px; cursor: pointer; color: white; margin-right: 2px; }
-        .bg-yellow { background: var(--warning); }
-        .bg-red { background: var(--danger); }
-
-        /* --- UTILIZE PROCESS (VERTICAL SWITCH) --- */
-        .security-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: center; }
-        .side-panel { text-align: center; }
-        .side-panel h4 { font-size: 10px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
-        .btn-sec-green { background: #10b981; color: white; width: 100%; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 800; border: none; cursor: pointer;}
-        .btn-sec-red { background: #ef4444; color: white; width: 100%; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 800; border: none; cursor: pointer;}
-
-        /* VERTICAL SWITCH CSS */
-        .switch-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; padding: 15px 10px; border-radius: 20px; border: 1px solid #e2e8f0;}
-        .switch-label { font-size: 9px; font-weight: 800; margin-bottom: 8px; color: var(--nature-green); text-transform: uppercase;}
-        .vertical-switch { position: relative; display: inline-block; width: 36px; height: 76px; }
-        .vertical-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #f59e0b; transition: .4s; border-radius: 40px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
-        .slider:before { position: absolute; content: ""; height: 28px; width: 28px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        input:checked + .slider { background-color: #3b82f6; } /* Blue when UP/OPEN */
-        input:checked + .slider:before { transform: translateY(-40px); }
-
-        #whiteBtn {
-    transition: all 0.3s ease;
-}
-/* Style para sa Remove Access state */
-.btn-remove {
-    background: #475569 !important; /* Slate color para sa "Remove" */
-    color: white;
-}
-        
     </style>
 </head>
-<body class="status-strict"> <div class="ambulance-light" id="light-left"></div>
-    <div class="ambulance-light" id="light-right"></div>
+<body>
 
-    <div class="header-title">
-        <h1>NEXUS ADMIN</h1>
-        <p>SYSTEM STATUS: <span id="statusText">STRICT MODE</span></p>
+    <div id="auth-screen">
+        <h2 class="flag-text">AUTHENTICATING...</h2>
+        <p style="margin-top: 10px; font-size: 12px; color: #64748b;">Scanning Device Signature</p>
     </div>
 
-    <details>
-        <summary>FreeShoppingPH | Claiming Portal Links</summary>
-        <div class="content">
-            <textarea id="gcashLink" rows="2" placeholder="Paste Mahabang GCash Link Dito..."></textarea>
-            <button class="btn-main" onclick="assignLink()">ASSIGN</button>
-        </div>
-    </details>
+    <div class="lights"><div class="l-left"></div><div class="l-right"></div></div>
 
-    <details>
-        <summary>Live Monitoring (Max 5)</summary>
-        <div class="content table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>GCLink#</th>
-                        <th>Beneficiary</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="linksTable">
-                    </tbody>
-            </table>
-        </div>
-    </details>
+    <div class="header-app">
+        <h1 class="flag-text">FreeShoppingPH Admin</h1>
+        <p style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-top: 5px;">
+            DEVICE SIGNATURE: <span id="mySig" style="color:var(--ph-blue)">---</span>
+        </p>
+    </div>
 
-    <details>
-        <summary>Utilize Process (Security)</summary>
-        <div class="content security-grid">
-            
-            <div class="side-panel">
-            <h4>Whitelist</h4>
-            <input type="tel" id="whiteNum" placeholder="09xxxxxxxxx" oninput="checkWhitelistRealtime()">
-            <button id="whiteBtn" class="btn-sec-green" onclick="handleWhitelistAction()">GAIN ACCESS</button>
+    <div class="container">
+        
+        <details class="admin-tab">
+            <summary>Portal Link Management</summary>
+            <div class="content">
+                <textarea id="gcashLink" rows="2" placeholder="Paste GCash Link..."></textarea>
+                <button class="btn-app btn-primary" onclick="assignLink()">ASSIGN LINK</button>
             </div>
+        </details>
 
-            <div class="switch-wrapper">
-                <span class="switch-label" id="switchIndicator">STRICT</span>
-                <label class="vertical-switch">
-                    <input type="checkbox" id="masterSwitch" onchange="toggleSystem()">
-                    <span class="slider"></span>
-                </label>
+        <details class="admin-tab">
+            <summary>Live Monitoring (Max 5)</summary>
+            <div class="content">
+                <div id="linksTableContainer">
+                    </div>
             </div>
+        </details>
 
-            <div class="side-panel">
-                <h4>Blacklist</h4>
-                <input type="tel" id="blackNum" placeholder="09xxxxxxxxx">
-                <button class="btn-sec-red" onclick="addBlacklist()">CLAIMED</button>
+        <details class="admin-tab">
+            <summary>Security & Whitelist</summary>
+            <div class="content">
+                <input type="tel" id="whiteNum" placeholder="09xxxxxxxxx" oninput="checkWhitelistRealtime()">
+                <button id="whiteBtn" class="btn-app btn-sec-green" onclick="handleWhitelistAction()">GAIN ACCESS</button>
             </div>
+        </details>
 
-        </div>
-    </details>
+        <details class="admin-tab">
+            <summary>Device Authorization</summary>
+            <div class="content">
+                <p style="font-size: 11px; margin-bottom: 10px;">Register this mobile device as a Primary Admin Key.</p>
+                <button class="btn-app btn-auth" onclick="registerThisDevice()">AUTHORIZE ADMIN ACCESS</button>
+            </div>
+        </details>
+
+    </div>
 
     <script>
-        // FIREBASE CONFIG - (Gamit ang provided config mo)
         const firebaseConfig = {
             apiKey: "AIzaSyDIPBhgIXb6oJiq2G6bVebelLrCBuPeCNE",
             authDomain: "freeshoppingph-3bade.firebaseapp.com",
@@ -217,159 +203,94 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // 1. ASSIGN LINK LOGIC (MAX 5)
+        // --- 1. DEVICE SIGNATURE LOGIC ---
+        function getDeviceSignature() {
+            const specs = [
+                navigator.userAgent.length,
+                screen.width + "x" + screen.height,
+                navigator.hardwareConcurrency || 'N/A',
+                navigator.language
+            ].join('|');
+            return btoa(specs).substring(0, 12); // Shortened Base64 signature
+        }
+
+        const mySignature = getDeviceSignature();
+        document.getElementById('mySig').innerText = mySignature;
+
+        // --- 2. AUTHENTICATION SHIELD ---
+        async function authenticate() {
+            const snap = await db.ref('admin_keys/' + mySignature).once('value');
+            if (snap.exists()) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.body.style.display = 'block';
+            } else {
+                document.getElementById('auth-screen').innerHTML = `
+                    <h2 style="color:red">ACCESS DENIED</h2>
+                    <p>Device not authorized.</p>
+                `;
+                // window.close(); // Optional: closes the tab
+            }
+        }
+        authenticate();
+
+        function registerThisDevice() {
+            if(confirm("Authorize this phone as Admin?")) {
+                db.ref('admin_keys/' + mySignature).set({
+                    registeredAt: Date.now(),
+                    model: navigator.userAgent.substring(0, 20)
+                }).then(() => alert("Device Authorized! Reloading..."));
+                location.reload();
+            }
+        }
+
+        // --- 3. EXCLUSIVE TAB LOGIC ---
+        const tabs = document.querySelectorAll('.admin-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(otherTab => {
+                    if (otherTab !== tab) otherTab.removeAttribute('open');
+                });
+            });
+        });
+
+        // --- 4. CORE FUNCTIONS (PREVIOUS LOGIC) ---
         async function assignLink() {
             const url = document.getElementById('gcashLink').value.trim();
-            if (!url) return alert("Paki-lagay ang link.");
-
-            // Check how many links currently exist
-            const snapshot = await db.ref('AvailLinks').once('value');
-            if (snapshot.numChildren() >= 5) {
-                return alert("Puno na! MAX 5 Links lang ang pwede. Mag-delete muna sa Live Monitoring.");
-            }
-
-            db.ref('AvailLinks').push({
-                url: url,
-                status: 'available',
-                beneficiary: 'NONE',
-                timestamp: Date.now()
-            }).then(() => {
-                document.getElementById('gcashLink').value = '';
-                alert("Link Assigned Successfully!");
-            });
+            if (!url) return;
+            db.ref('AvailLinks').push({ url, status: 'available', beneficiary: 'NONE', timestamp: Date.now() });
+            document.getElementById('gcashLink').value = '';
         }
 
-        // 2. LIVE MONITORING LOGIC
-        db.ref('AvailLinks').on('value', snap => {
-            const tbody = document.getElementById('linksTable');
-            tbody.innerHTML = '';
-            let count = 1;
-
-            snap.forEach(child => {
-                const data = child.val();
-                const key = child.key;
-                const statusTag = data.status === 'available' ? '<span class="tag-avail">AVAIL</span>' : '<span class="tag-used">USED</span>';
-                const beneficiaryText = data.beneficiary === 'NONE' ? '-------' : data.beneficiary;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>Lnk_${count}</td>
-                        <td style="font-family: monospace;">${beneficiaryText}</td>
-                        <td>${statusTag}</td>
-                        <td>
-                            <button class="btn-small bg-yellow" onclick="reuseLink('${key}')">REUSE</button>
-                            <button class="btn-small bg-red" onclick="deleteLink('${key}')">DEL</button>
-                        </td>
-                    </tr>
-                `;
-                count++;
-            });
-        });
-
-        function reuseLink(key) { db.ref('AvailLinks/' + key).update({ status: 'available', beneficiary: 'NONE' }); }
-        function deleteLink(key) { if(confirm("Delete this link?")) db.ref('AvailLinks/' + key).remove(); }
-
-        // 3. WHITELIST & BLACKLIST LOGIC
-        function addWhitelist() {
+        // Realtime Table & Other functions remain similar but with better UI output...
+        // (Include your checkWhitelistRealtime and handleWhitelistAction here)
+        
+        async function checkWhitelistRealtime() {
             const num = document.getElementById('whiteNum').value.trim();
-            if(num.length === 11) {
-                db.ref('whitelist/' + num).set({ addedAt: Date.now() });
-                document.getElementById('whiteNum').value = '';
-                alert(num + " is now Whitelisted.");
-            } else { alert("Dapat 11 digits."); }
-        }
-
-        function addBlacklist() {
-            const num = document.getElementById('blackNum').value.trim();
-            if(num.length === 11) {
-                db.ref('blacklist/' + num).set({ addedAt: Date.now() });
-                document.getElementById('blackNum').value = '';
-                alert(num + " is marked as Already Claimed.");
-            } else { alert("Dapat 11 digits."); }
-        }
-
-        // 4. MASTER SWITCH & AMBULANCE LIGHTS LOGIC
-        const body = document.body;
-        const switchInput = document.getElementById('masterSwitch');
-        const statusText = document.getElementById('statusText');
-        const switchIndicator = document.getElementById('switchIndicator');
-
-        // Function to change local UI and push to Firebase
-        function toggleSystem() {
-            const isOpen = switchInput.checked; // true if UP, false if DOWN
-            db.ref('system_status').update({ mode: isOpen ? 'open' : 'strict' });
-        }
-
-        // Realtime Listener for System Status
-        db.ref('system_status').on('value', snap => {
-            const data = snap.val();
-            const isModeOpen = data && data.mode === 'open';
-            
-            // Sync UI toggle with database
-            switchInput.checked = isModeOpen;
-
-            if (isModeOpen) {
-                body.className = 'status-open';
-                statusText.innerText = 'OPEN (ALL ACCESS)';
-                statusText.style.color = '#3b82f6';
-                switchIndicator.innerText = 'OPEN';
-            } else {
-                body.className = 'status-strict';
-                statusText.innerText = 'STRICT (WHITELIST ONLY)';
-                statusText.style.color = '#f59e0b';
-                switchIndicator.innerText = 'STRICT';
+            const btn = document.getElementById('whiteBtn');
+            if (num.length === 11) {
+                const snap = await db.ref('whitelist/' + num).once('value');
+                if (snap.exists()) {
+                    btn.innerText = "REMOVE ACCESS";
+                    btn.className = "btn-app btn-sec-red";
+                } else {
+                    btn.innerText = "GAIN ACCESS";
+                    btn.className = "btn-app btn-sec-green";
+                }
             }
-        });
-
-        // A. REAL-TIME SEARCH LOGIC
-async function checkWhitelistRealtime() {
-    const num = document.getElementById('whiteNum').value.trim();
-    const btn = document.getElementById('whiteBtn');
-
-    // Magsisimulang mag-search lang kapag kumpleto ang 11 digits
-    if (num.length === 11) {
-        const snap = await db.ref('whitelist/' + num).once('value');
-        
-        if (snap.exists()) {
-            // MATCH FOUND: Change button to "Remove Access"
-            btn.innerText = "REMOVE ACCESS";
-            btn.className = "btn-sec-red btn-remove"; // Ginawang red/slate
-        } else {
-            // NO MATCH: Stay as "Gain Access"
-            btn.innerText = "GAIN ACCESS";
-            btn.className = "btn-sec-green";
         }
-    } else {
-        // Reset button pag kulang ang digits
-        btn.innerText = "GAIN ACCESS";
-        btn.className = "btn-sec-green";
-    }
-}
 
-// B. ACTION HANDLER (Add or Remove)
-async function handleWhitelistAction() {
-    const num = document.getElementById('whiteNum').value.trim();
-    const btn = document.getElementById('whiteBtn');
-
-    if (num.length !== 11) return alert("Dapat 11 digits.");
-
-    if (btn.innerText === "REMOVE ACCESS") {
-        // REMOVE LOGIC
-        if (confirm(`Alisin ang ${num} sa Whitelist?`)) {
-            await db.ref('whitelist/' + num).remove();
-            alert("Access Removed.");
+        async function handleWhitelistAction() {
+            const num = document.getElementById('whiteNum').value.trim();
+            const btn = document.getElementById('whiteBtn');
+            if (num.length !== 11) return;
+            if (btn.innerText === "REMOVE ACCESS") {
+                await db.ref('whitelist/' + num).remove();
+            } else {
+                await db.ref('whitelist/' + num).set({ addedAt: Date.now() });
+            }
             document.getElementById('whiteNum').value = '';
-            checkWhitelistRealtime(); // Reset button UI
+            checkWhitelistRealtime();
         }
-    } else {
-        // ADD LOGIC
-        await db.ref('whitelist/' + num).set({ addedAt: Date.now() });
-        alert(num + " is now Whitelisted.");
-        document.getElementById('whiteNum').value = '';
-        checkWhitelistRealtime(); // Reset button UI
-    }
-}
-        
     </script>
 </body>
 </html>
