@@ -2,7 +2,7 @@
   "name": "FreeShoppingPH | Admin Panel",
   "short_name": "FS-Admin",
   "description": "Admin Control Panel for FreeShoppingPH",
-  "start_url": "/fsadmin_update.html",
+  "start_url": "https://freeshoppingph.github.io/FreeShoppingPH/fsadmin_update.html",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#00f2ff",
