@@ -1,15 +1,53 @@
 {
+  "name": "FreeShoppingPH | Admin Panel",
   "short_name": "FS-Admin",
-  "name": "FreeShopping Admin Panel",
+  "description": "Admin Control Panel for FreeShoppingPH",
+  "start_url": "/fsadmin_update.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#00f2ff",
+  "background_color": "#010101",
   "icons": [
     {
-      "src": "https://freeshoppingph.github.io/FreeShoppingPH/fs_pp.jpg",
-      "type": "image/jpg",
-      "sizes": "512x512"
+      "src": "fs_pp.jpg",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "fs_pp.jpg",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "/fsadmin_update.html",
-  "background_color": "#111111",
-  "display": "standalone",
-  "theme_color": "#0038a8"
+  ]
 }
